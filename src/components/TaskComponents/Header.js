@@ -9,6 +9,7 @@ export default function Header() {
     <View style={{
       paddingHorizontal: wp(2.5),
       paddingBottom: hp(1.5),
+      paddingTop: hp(2),
       backgroundColor: 'white',
       borderBottomWidth: 1,
       borderBottomColor: '#f1f5f9'

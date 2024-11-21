@@ -14,7 +14,6 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 export default function Task() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
 
   const {
     selectedDate,
@@ -83,11 +82,7 @@ export default function Task() {
 
   return (
     <View 
-      className="flex-1 bg-gray-50"
-      style={{
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom
-      }}
+      className="flex-1 bg-gray-50 "
     >
       {/* Fixed Header Section */}
       <View className="bg-gray-50 z-10 shadow-sm">
