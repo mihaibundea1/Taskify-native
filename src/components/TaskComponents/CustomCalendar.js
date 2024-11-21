@@ -1,177 +1,246 @@
 // components/TaskComponents/CustomCalendar.js
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react-native';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+
 
 const calendarTheme = {
-  backgroundColor: '#ffffff',
-  calendarBackground: '#ffffff',
-  textSectionTitleColor: '#64748b',
-  selectedDayBackgroundColor: '#6366f1',
-  selectedDayTextColor: '#ffffff',
-  todayTextColor: '#6366f1',
-  dayTextColor: '#1e293b',
-  textDisabledColor: '#cbd5e1',
-  dotColor: '#6366f1',
-  monthTextColor: '#1e293b',
-  textMonthFontWeight: 'bold',
-  arrowColor: '#6366f1',
-  'stylesheet.calendar.header': {
-    week: {
-      marginTop: 5,
-      flexDirection: 'row',
-      justifyContent: 'space-around',
+    backgroundColor: '#ffffff',
+    calendarBackground: '#ffffff',
+    textSectionTitleColor: '#64748b',
+    selectedDayBackgroundColor: '#6366f1',
+    selectedDayTextColor: '#ffffff',
+    todayTextColor: '#6366f1',
+    dayTextColor: '#1e293b',
+    textDisabledColor: '#cbd5e1',
+    dotColor: '#6366f1',
+    monthTextColor: '#1e293b',
+    textMonthFontWeight: 'bold',
+    arrowColor: '#6366f1',
+    'stylesheet.calendar.header': {
+        week: {
+            marginTop: hp(0.6),
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+        },
     },
-  },
-  'stylesheet.day.basic': {
-    base: {
-      width: 44,
-      height: 44,
-      alignItems: 'center',
-      justifyContent: 'center',
+    'stylesheet.day.basic': {
+        base: {
+            width: wp(11),
+            height: wp(11),
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        selected: {
+            borderRadius: wp(5.5),
+            backgroundColor: '#6366f1',
+        },
+        today: {
+            borderRadius: wp(5.5),
+            borderWidth: 1,
+            borderColor: '#6366f1',
+        },
     },
-    selected: {
-      borderRadius: 22,
-      backgroundColor: '#6366f1',
-    },
-    today: {
-      borderRadius: 22,
-      borderWidth: 1,
-      borderColor: '#6366f1',
-    },
-  },
 };
 
 export default function CustomCalendar({ selectedDate, onDayPress, markedDates }) {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [calendarHeight, setCalendarHeight] = useState(new Animated.Value(350)); // Înălțimea inițială
-  const [isExpanded, setIsExpanded] = useState(true);
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [calendarHeight] = useState(new Animated.Value(hp(45)));
+    const [isExpanded, setIsExpanded] = useState(true);
+    const slideAnim = useRef(new Animated.Value(0)).current;
+    const [isAnimating, setIsAnimating] = useState(false);
 
-  // Handler pentru schimbarea lunii
-  const handleMonthChange = (month) => {
-    setCurrentMonth(new Date(month.timestamp));
-  };
+    const animateMonthChange = (direction) => {
+        if (isAnimating) return;
+        setIsAnimating(true);
 
-  // Funcție pentru a obține numele lunii și anul
-  const getMonthYearString = () => {
-    return currentMonth.toLocaleDateString('en-US', {
-      month: 'long',
-      year: 'numeric'
-    });
-  };
+        const startValue = direction === 'next' ? 0 : 0;
+        const endValue = direction === 'next' ? -wp(100) : wp(100);
 
-  // Funcție pentru a comuta vizibilitatea calendarului
-  const toggleCalendarHeight = () => {
-    const toValue = isExpanded ? 80 : 350; // Înălțimile pentru stările expandat/restrâns
-    
-    Animated.spring(calendarHeight, {
-      toValue,
-      useNativeDriver: false,
-      friction: 10,
-    }).start();
-    
-    setIsExpanded(!isExpanded);
-  };
+        slideAnim.setValue(startValue);
 
-  // Funcții pentru a naviga la luna următoare/anterioară
-  const goToPreviousMonth = () => {
-    const newDate = new Date(currentMonth.setMonth(currentMonth.getMonth() - 1));
-    setCurrentMonth(newDate);
-    // Aici poți adăuga logica pentru a actualiza markedDates dacă e necesar
-  };
+        Animated.sequence([
+            Animated.timing(slideAnim, {
+                toValue: endValue,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 0,
+                useNativeDriver: true,
+            })
+        ]).start(() => {
+            setIsAnimating(false);
+        });
+    };
 
-  const goToNextMonth = () => {
-    const newDate = new Date(currentMonth.setMonth(currentMonth.getMonth() + 1));
-    setCurrentMonth(newDate);
-    // Aici poți adăuga logica pentru a actualiza markedDates dacă e necesar
-  };
+    const handleMonthChange = (month) => {
+        setCurrentMonth(new Date(month.timestamp));
+    };
 
-  // Funcție pentru a merge la ziua curentă
-  const goToToday = () => {
-    const today = new Date();
-    setCurrentMonth(today);
-    onDayPress({ dateString: today.toISOString().split('T')[0] });
-  };
+    const getMonthYearString = () => {
+        return currentMonth.toLocaleDateString('en-US', {
+            month: 'long',
+            year: 'numeric'
+        });
+    };
 
-  return (
-    <Animated.View className="px-4" style={{ height: calendarHeight }}>
-      <View className="bg-white rounded-2xl shadow-md overflow-hidden">
-        {/* Header cu lună și controale */}
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
-          <TouchableOpacity 
-            onPress={toggleCalendarHeight}
-            className="flex-row items-center"
-          >
-            <CalendarIcon size={20} color="#6366f1" />
-            <Text className="ml-2 text-lg font-semibold text-gray-800">
-              {getMonthYearString()}
-            </Text>
-          </TouchableOpacity>
+    const toggleCalendarHeight = () => {
+        const toValue = isExpanded ? hp(10) : hp(45);
 
-          <View className="flex-row items-center">
-            <TouchableOpacity 
-              onPress={goToToday}
-              className="px-3 py-1 bg-indigo-50 rounded-full mr-2"
-            >
-              <Text className="text-indigo-500 text-sm">Today</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity onPress={goToPreviousMonth} className="p-2">
-              <ChevronLeft size={20} color="#6366f1" />
-            </TouchableOpacity>
-            
-            <TouchableOpacity onPress={goToNextMonth} className="p-2">
-              <ChevronRight size={20} color="#6366f1" />
-            </TouchableOpacity>
-          </View>
-        </View>
+        Animated.spring(calendarHeight, {
+            toValue,
+            useNativeDriver: false,
+            friction: 10,
+        }).start();
 
-        {/* Calendar */}
-        {isExpanded && (
-          <Calendar
-            current={currentMonth.toISOString()}
-            theme={calendarTheme}
-            onDayPress={onDayPress}
-            markedDates={markedDates}
-            enableSwipeMonths={true}
-            onMonthChange={handleMonthChange}
-            hideExtraDays={true}
-            hideArrows={true}
-            style={{
-              borderRadius: 16,
-              padding: 10,
-            }}
-            // Personalizare pentru zilele cu evenimente
-            dayComponent={({ date, state, marking }) => {
-              const isSelected = marking?.selected;
-              const hasEvents = marking?.marked;
-              const isToday = date.dateString === new Date().toISOString().split('T')[0];
-              
-              return (
-                <TouchableOpacity
-                  onPress={() => onDayPress(date)}
-                  className={`w-10 h-10 items-center justify-center rounded-full 
-                    ${isSelected ? 'bg-indigo-500' : ''}
-                    ${isToday && !isSelected ? 'border border-indigo-500' : ''}`}
+        setIsExpanded(!isExpanded);
+    };
+
+    const goToPreviousMonth = () => {
+        if (isAnimating) return;
+        const newDate = new Date(currentMonth);
+        newDate.setMonth(currentMonth.getMonth() - 1);
+        setCurrentMonth(newDate);
+        animateMonthChange('prev');
+    };
+
+    const goToNextMonth = () => {
+        if (isAnimating) return;
+        const newDate = new Date(currentMonth);
+        newDate.setMonth(currentMonth.getMonth() + 1);
+        setCurrentMonth(newDate);
+        animateMonthChange('next');
+    };
+
+    const goToToday = () => {
+        const today = new Date();
+        const currentMonthTime = currentMonth.getTime();
+        const todayTime = today.getTime();
+        const direction = todayTime > currentMonthTime ? 'next' : 'prev';
+
+        setCurrentMonth(today);
+        animateMonthChange(direction);
+        onDayPress({ dateString: today.toISOString().split('T')[0] });
+    };
+
+    return (
+        <Animated.View className="px-4" style={{ height: calendarHeight }}>
+            <View className="bg-white rounded-2xl shadow-md overflow-hidden">
+                <Animated.View
+                    className="flex-row items-center justify-between border-b border-gray-100"
+                    style={{
+                        paddingHorizontal: wp(4),
+                        paddingVertical: hp(1.5),
+                        transform: [{ translateX: slideAnim }]
+                    }}
                 >
-                  <Text
-                    className={`text-base 
-                      ${isSelected ? 'text-white' : 'text-gray-800'}
-                      ${state === 'disabled' ? 'text-gray-300' : ''}
-                      ${isToday && !isSelected ? 'text-indigo-500' : ''}`}
-                  >
-                    {date.day}
-                  </Text>
-                  {hasEvents && !isSelected && (
-                    <View className="absolute bottom-1 w-1 h-1 rounded-full bg-indigo-500" />
-                  )}
-                </TouchableOpacity>
-              );
-            }}
-          />
-        )}
-      </View>
-    </Animated.View>
-  );
+                    <TouchableOpacity
+                        onPress={toggleCalendarHeight}
+                        className="flex-row items-center"
+                    >
+                        <CalendarIcon size={wp(5)} color="#6366f1" />
+                        <Text className="text-gray-800 font-semibold"
+                            style={{
+                                marginLeft: wp(2),
+                                fontSize: wp(4.5)
+                            }}>
+                            {getMonthYearString()}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <View className="flex-row items-center">
+                        <TouchableOpacity
+                            onPress={goToToday}
+                            className="bg-indigo-50 rounded-full"
+                            style={{
+                                paddingHorizontal: wp(3),
+                                paddingVertical: hp(0.5),
+                                marginRight: wp(2)
+                            }}
+                        >
+                            <Text className="text-indigo-500" style={{ fontSize: wp(3.5) }}>Today</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={goToPreviousMonth}
+                            style={{ padding: wp(2) }}
+                            disabled={isAnimating}
+                        >
+                            <ChevronLeft size={wp(5)} color={isAnimating ? '#cbd5e1' : '#6366f1'} />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={goToNextMonth}
+                            style={{ padding: wp(2) }}
+                            disabled={isAnimating}
+                        >
+                            <ChevronRight size={wp(5)} color={isAnimating ? '#cbd5e1' : '#6366f1'} />
+                        </TouchableOpacity>
+                    </View>
+                </Animated.View>
+
+                {isExpanded && (
+                    <Animated.View style={{
+                        transform: [{ translateX: slideAnim }]
+                    }}>
+                        <Calendar
+                            current={currentMonth.toISOString()}
+                            theme={calendarTheme}
+                            onDayPress={onDayPress}
+                            markedDates={markedDates}
+                            enableSwipeMonths={true}
+                            onMonthChange={handleMonthChange}
+                            hideExtraDays={true}
+                            hideArrows={true}
+                            style={{
+                                borderRadius: wp(4),
+                                padding: wp(2.5),
+                            }}
+                            dayComponent={({ date, state, marking }) => {
+                                const isSelected = marking?.selected;
+                                const hasEvents = marking?.marked;
+                                const isToday = date.dateString === new Date().toISOString().split('T')[0];
+
+                                return (
+                                    <TouchableOpacity
+                                        onPress={() => onDayPress(date)}
+                                        className={`items-center justify-center
+                        ${isSelected ? 'bg-indigo-500' : 'bg-transparent'}
+                        ${isToday && !isSelected ? 'border border-indigo-500' : ''}
+                      `}
+                                        style={{
+                                            width: wp(10),
+                                            height: wp(10),
+                                            borderRadius: wp(5),
+                                        }}
+                                    >
+                                        <Text className={`
+                        ${isSelected ? 'text-white' : ''}
+                        ${state === 'disabled' ? 'text-gray-300' : ''}
+                        ${isToday && !isSelected ? 'text-indigo-500' : 'text-gray-800'}
+                      `}
+                                            style={{ fontSize: wp(4) }}>
+                                            {date.day}
+                                        </Text>
+                                        {hasEvents && !isSelected && (
+                                            <View className="absolute bg-indigo-500 rounded-full"
+                                                style={{
+                                                    bottom: wp(1),
+                                                    width: wp(1),
+                                                    height: wp(1),
+                                                }} />
+                                        )}
+                                    </TouchableOpacity>
+                                );
+                            }}
+                        />
+                    </Animated.View>
+                )}
+            </View>
+        </Animated.View>
+    );
 }

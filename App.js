@@ -5,6 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Task from './src/screens/Task';
 import TaskDetails from './src/screens/TaskDetails';
 import { TaskProvider } from './src/context/TaskContext';
+
 const Stack = createStackNavigator();
 
 export default function App() {
