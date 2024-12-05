@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -9,7 +9,8 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Keyboard
+  Keyboard,
+  TouchableWithoutFeedback
 } from 'react-native';
 import { Mail, Lock, Eye, EyeOff, User, Phone } from 'lucide-react-native';
 import { useSignUp, useOAuth } from '@clerk/clerk-expo';
@@ -23,33 +24,57 @@ export default function Register({ navigation }) {
   
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Refs to store temporary input values
+  const inputRefs = {
+    firstName: useRef(''),
+    lastName: useRef(''),
+    email: useRef(''),
+    phone: useRef(''),
+    password: useRef('')
+  };
+
+  // State for final form data
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
     firstName: '',
     lastName: '',
-    phone: ''
+    email: '',
+    phone: '',
+    password: ''
   });
+
+  // Handle keyboard dismiss and save all temporary values to state
+  const handleKeyboardDismiss = () => {
+    const newFormData = {
+      firstName: inputRefs.firstName.current,
+      lastName: inputRefs.lastName.current,
+      email: inputRefs.email.current,
+      phone: inputRefs.phone.current,
+      password: inputRefs.password.current
+    };
+    setFormData(newFormData);
+    Keyboard.dismiss();
+  };
 
   const handleSignUp = async () => {
     if (!isLoaded) return;
+    
+    // Save any pending input values before submission
+    handleKeyboardDismiss();
 
     try {
       setIsLoading(true);
 
-      // First create the user
       const signUpAttempt = await signUp.create({
         emailAddress: formData.email,
         password: formData.password,
       });
 
-      // Then update the user with additional details
       await signUpAttempt.update({
         firstName: formData.firstName,
         lastName: formData.lastName,
       });
 
-      // If phone number is provided, add it separately
       if (formData.phone) {
         try {
           await signUpAttempt.createPhoneNumberVerification({
@@ -98,23 +123,26 @@ export default function Register({ navigation }) {
   const InputField = ({ 
     icon, 
     placeholder, 
-    value, 
-    onChange, 
+    inputRef,
+    initialValue,
     secureTextEntry, 
     keyboardType = 'default',
-    isPassword = false  // Add new prop to identify password field
+    isPassword = false
   }) => (
     <View className="relative w-full h-12">
       <View className="absolute left-3 top-[25%] z-10">
         {icon}
       </View>
       <TextInput
-        value={value}
-        onChangeText={onChange}
+        defaultValue={initialValue}
+        onChangeText={(text) => {
+          inputRef.current = text;
+        }}
         placeholder={placeholder}
+        placeholderTextColor="#9CA3AF"
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
-        className={`w-full h-full pl-10 ${isPassword ? 'pr-12' : 'pr-3'} bg-white border border-gray-300 rounded-md`}
+        className={`w-full h-full pl-10 ${isPassword ? 'pr-12' : 'pr-3'} bg-white border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-400`}
         autoCapitalize="none"
         editable={!isLoading}
         returnKeyType="next"
@@ -140,123 +168,113 @@ export default function Register({ navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       className="flex-1"
     >
-      <ScrollView 
-        className="flex-1 bg-gray-50"
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="interactive"
-      >
-        <View className="min-h-screen w-[90%] mx-auto py-[10%]">
-          <View className="w-full">
-            <Text className="text-3xl font-bold text-center mb-[8%]">Create Account</Text>
-            
-            <View className="space-y-4 mb-[5%]">
-              <View className="flex-row space-x-3">
-                <View className="flex-1">
-                  <Text className="text-sm font-medium text-gray-700 mb-1">First Name</Text>
+      <TouchableWithoutFeedback onPress={handleKeyboardDismiss}>
+        <ScrollView 
+          className="flex-1 bg-gray-50"
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          <View className="min-h-screen w-[90%] mx-auto py-[10%]">
+            <View className="w-full">
+              <Text className="text-3xl font-bold text-center mb-[8%]">Create Account</Text>
+              
+              <View className="space-y-4 mb-[5%]">
+                <View className="flex-row space-x-3">
+                  <View className="flex-1">
+                    <Text className="text-sm font-medium text-gray-700 mb-1">First Name</Text>
+                    <InputField
+                      icon={<User size={20} color="#9CA3AF" />}
+                      placeholder="First Name"
+                      inputRef={inputRefs.firstName}
+                      initialValue={formData.firstName}
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-sm font-medium text-gray-700 mb-1">Last Name</Text>
+                    <InputField
+                      icon={<User size={20} color="#9CA3AF" />}
+                      placeholder="Last Name"
+                      inputRef={inputRefs.lastName}
+                      initialValue={formData.lastName}
+                    />
+                  </View>
+                </View>
+
+                <View>
+                  <Text className="text-sm font-medium text-gray-700 mb-1">Email</Text>
                   <InputField
-                    icon={<User size={20} color="#9CA3AF" />}
-                    placeholder="First Name"
-                    value={formData.firstName}
-                    onChange={(text) => setFormData({...formData, firstName: text})}
+                    icon={<Mail size={20} color="#9CA3AF" />}
+                    placeholder="Email"
+                    inputRef={inputRefs.email}
+                    initialValue={formData.email}
+                    keyboardType="email-address"
                   />
                 </View>
-                <View className="flex-1">
-                  <Text className="text-sm font-medium text-gray-700 mb-1">Last Name</Text>
+
+                <View>
+                  <Text className="text-sm font-medium text-gray-700 mb-1">Phone</Text>
                   <InputField
-                    icon={<User size={20} color="#9CA3AF" />}
-                    placeholder="Last Name"
-                    value={formData.lastName}
-                    onChange={(text) => setFormData({...formData, lastName: text})}
+                    icon={<Phone size={20} color="#9CA3AF" />}
+                    placeholder="Phone number"
+                    inputRef={inputRefs.phone}
+                    initialValue={formData.phone}
+                    keyboardType="phone-pad"
                   />
                 </View>
-              </View>
 
-              <View>
-                <Text className="text-sm font-medium text-gray-700 mb-1">Email</Text>
-                <InputField
-                  icon={<Mail size={20} color="#9CA3AF" />}
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={(text) => setFormData({...formData, email: text})}
-                  keyboardType="email-address"
-                />
-              </View>
-
-              <View>
-                <Text className="text-sm font-medium text-gray-700 mb-1">Phone</Text>
-                <InputField
-                  icon={<Phone size={20} color="#9CA3AF" />}
-                  placeholder="Phone number"
-                  value={formData.phone}
-                  onChange={(text) => setFormData({...formData, phone: text})}
-                  keyboardType="phone-pad"
-                />
-              </View>
-
-              <View>
-                <Text className="text-sm font-medium text-gray-700 mb-1">Password</Text>
-                <View className="relative">
+                <View>
+                  <Text className="text-sm font-medium text-gray-700 mb-1">Password</Text>
                   <InputField
                     icon={<Lock size={20} color="#9CA3AF" />}
                     placeholder="Password"
-                    value={formData.password}
-                    onChange={(text) => setFormData({...formData, password: text})}
+                    inputRef={inputRefs.password}
+                    initialValue={formData.password}
                     secureTextEntry={!showPassword}
                     isPassword={true}
                   />
-                  <TouchableOpacity 
-                    onPress={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-[25%] z-10"
-                    disabled={isLoading}
-                  >
-                    {showPassword ? 
-                      <EyeOff size={20} color="#9CA3AF" /> : 
-                      <Eye size={20} color="#9CA3AF" />
-                    }
-                  </TouchableOpacity>
                 </View>
               </View>
-            </View>
 
-            <TouchableOpacity 
-              className={`w-full bg-blue-600 py-3 rounded-md mb-[5%] ${isLoading ? 'opacity-70' : ''}`}
-              onPress={handleSignUp}
-              disabled={isLoading}
-            >
-              <Text className="text-white text-center font-semibold text-lg">
-                {isLoading ? 'Creating Account...' : 'Sign Up'}
-              </Text>
-            </TouchableOpacity>
-
-            <View className="flex-row items-center mb-[5%]">
-              <View className="flex-1 h-px bg-gray-300" />
-              <Text className="mx-4 text-gray-500">Or continue with</Text>
-              <View className="flex-1 h-px bg-gray-300" />
-            </View>
-
-            <TouchableOpacity 
-              className={`w-full flex-row items-center justify-center py-3 bg-white border border-gray-300 rounded-md mb-[5%] ${isLoading ? 'opacity-70' : ''}`}
-              onPress={handleGoogleSignUp}
-              disabled={isLoading}
-            >
-              <Image 
-                source={{ uri: 'https://www.google.com/favicon.ico' }}
-                className="w-6 h-6 mr-2"
-              />
-              <Text className="text-gray-700 font-medium">
-                {isLoading ? 'Loading...' : 'Sign up with Google'}
-              </Text>
-            </TouchableOpacity>
-
-            <View className="flex-row justify-center">
-              <Text className="text-gray-600">Already have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={isLoading}>
-                <Text className="text-blue-600">Login</Text>
+              <TouchableOpacity 
+                className={`w-full bg-blue-600 py-3 rounded-md mb-[5%] ${isLoading ? 'opacity-70' : ''}`}
+                onPress={handleSignUp}
+                disabled={isLoading}
+              >
+                <Text className="text-white text-center font-semibold text-lg">
+                  {isLoading ? 'Creating Account...' : 'Sign Up'}
+                </Text>
               </TouchableOpacity>
+
+              <View className="flex-row items-center mb-[5%]">
+                <View className="flex-1 h-px bg-gray-300" />
+                <Text className="mx-4 text-gray-500">Or continue with</Text>
+                <View className="flex-1 h-px bg-gray-300" />
+              </View>
+
+              <TouchableOpacity 
+                className={`w-full flex-row items-center justify-center py-3 bg-white border border-gray-300 rounded-md mb-[5%] ${isLoading ? 'opacity-70' : ''}`}
+                onPress={handleGoogleSignUp}
+                disabled={isLoading}
+              >
+                <Image 
+                  source={{ uri: 'https://www.google.com/favicon.ico' }}
+                  className="w-6 h-6 mr-2"
+                />
+                <Text className="text-gray-700 font-medium">
+                  {isLoading ? 'Loading...' : 'Sign up with Google'}
+                </Text>
+              </TouchableOpacity>
+
+              <View className="flex-row justify-center">
+                <Text className="text-gray-600">Already have an account? </Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={isLoading}>
+                  <Text className="text-blue-600">Login</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }
