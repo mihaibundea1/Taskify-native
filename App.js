@@ -9,6 +9,7 @@ import TaskDetails from './src/screens/TaskDetails';
 import Login from './src/screens/Login';
 import Register from './src/screens/Register';
 import { VITE_CLERK_PUBLISHABLE_KEY } from '@env';
+import { TaskProvider } from './src/context/TaskContext';
 
 const Stack = createStackNavigator();
 
@@ -23,10 +24,13 @@ const tokenCache = {
 
 export default function App() {
   return (
+<<<<<<< HEAD
     <ClerkProvider 
       publishableKey={VITE_CLERK_PUBLISHABLE_KEY}
       tokenCache={tokenCache}
     >
+          <TaskProvider>
+
       <NavigationContainer>
         <SignedIn>
           <Stack.Navigator>
@@ -41,6 +45,7 @@ export default function App() {
           </Stack.Navigator>
         </SignedOut>
       </NavigationContainer>
+      </TaskProvider>
     </ClerkProvider>
   );
 }
