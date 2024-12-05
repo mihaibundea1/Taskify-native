@@ -23,8 +23,7 @@ const tokenCache = {
 };
 
 export default function App() {
-  return (
-<<<<<<< HEAD
+  return ( 
     <ClerkProvider 
       publishableKey={VITE_CLERK_PUBLISHABLE_KEY}
       tokenCache={tokenCache}
