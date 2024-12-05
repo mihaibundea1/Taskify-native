@@ -9,11 +9,8 @@
     "web": "expo start --web"
   },
   "dependencies": {
-<<<<<<< HEAD
     "@clerk/clerk-expo": "^2.3.13",
-=======
     "@react-native-async-storage/async-storage": "^2.1.0",
->>>>>>> 1657f4f84fe153611388735499656b3159592bf2
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/stack": "^6.4.1",
     "dotenv": "^16.4.7",
