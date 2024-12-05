@@ -54,21 +54,22 @@ export default function Login({ navigation }) {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <View className="w-[90%] mx-auto h-full py-[10%] justify-center">
-        <Text className="text-2xl font-bold text-center mb-[8%]">Welcome Back</Text>
+      <View className="w-[90%] mx-auto h-full py-[5%] justify-center">
+        <Text className="text-2xl font-bold text-center mb-[6%]">Welcome Back</Text>
         
-        <View className="space-y-[4%]">
+        <View className="space-y-[3%]">
           <View>
-            <Text className="text-sm font-medium text-gray-700 mb-[2%]">Email</Text>
-            <View className="relative h-12">
-              <View className="absolute left-3 top-[25%] z-10">
+            <Text className="text-sm font-medium text-gray-700 mb-[1%]">Email</Text>
+            <View className="relative h-[48px]">
+              <View className="absolute left-[4%] top-[25%] z-10">
                 <Mail size={20} color="#9CA3AF" />
               </View>
               <TextInput
                 value={email}
                 onChangeText={setEmail}
                 placeholder="Enter your email"
-                className="w-full h-full pl-10 pr-3 bg-white border border-gray-300 rounded-md"
+                placeholderTextColor="#9CA3AF"
+                className="w-full h-full pl-[12%] pr-[4%] bg-white border border-gray-300 rounded-md text-gray-900"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 editable={!isLoading}
@@ -77,22 +78,23 @@ export default function Login({ navigation }) {
           </View>
 
           <View>
-            <Text className="text-sm font-medium text-gray-700 mb-[2%]">Password</Text>
-            <View className="relative h-12">
-              <View className="absolute left-3 top-[25%] z-10">
+            <Text className="text-sm font-medium text-gray-700 mb-[1%]">Password</Text>
+            <View className="relative h-[48px]">
+              <View className="absolute left-[4%] top-[25%] z-10">
                 <Lock size={20} color="#9CA3AF" />
               </View>
               <TextInput
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Enter your password"
+                placeholderTextColor="#9CA3AF"
                 secureTextEntry={!showPassword}
-                className="w-full h-full pl-10 pr-10 bg-white border border-gray-300 rounded-md"
+                className="w-full h-full pl-[12%] pr-[12%] bg-white border border-gray-300 rounded-md text-gray-900"
                 editable={!isLoading}
               />
               <TouchableOpacity 
                 onPress={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-[25%] z-10"
+                className="absolute right-[4%] top-[25%] z-10"
               >
                 {showPassword ? 
                   <EyeOff size={20} color="#9CA3AF" /> : 
@@ -102,13 +104,13 @@ export default function Login({ navigation }) {
             </View>
           </View>
 
-          <View className="flex-row justify-between items-center">
+          <View className="flex-row justify-between items-center mt-[2%]">
             <TouchableOpacity 
               className="flex-row items-center" 
               onPress={() => setRememberMe(!rememberMe)}
               disabled={isLoading}
             >
-              <View className={`w-4 h-4 border rounded mr-2 ${rememberMe ? 'bg-blue-600 border-blue-600' : 'border-gray-300'}`} />
+              <View className={`w-[16px] h-[16px] border rounded mr-[8px] ${rememberMe ? 'bg-blue-600 border-blue-600' : 'border-gray-300'}`} />
               <Text className="text-sm text-gray-600">Remember me</Text>
             </TouchableOpacity>
             <TouchableOpacity disabled={isLoading}>
@@ -117,36 +119,36 @@ export default function Login({ navigation }) {
           </View>
 
           <TouchableOpacity 
-            className={`bg-blue-600 h-12 rounded-md mt-[5%] ${isLoading ? 'opacity-70' : ''}`}
+            className={`bg-blue-600 h-[48px] rounded-md mt-[4%] ${isLoading ? 'opacity-70' : ''}`}
             onPress={handleSignIn}
             disabled={isLoading}
           >
-            <Text className="text-white text-center font-semibold leading-[48px]">
+            <Text className="text-white text-center font-semibold h-full leading-[48px]">
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Text>
           </TouchableOpacity>
 
-          <View className="flex-row items-center my-[5%]">
-            <View className="flex-1 h-px bg-gray-300" />
-            <Text className="mx-4 text-gray-500 text-sm">Or continue with</Text>
-            <View className="flex-1 h-px bg-gray-300" />
+          <View className="flex-row items-center my-[4%]">
+            <View className="flex-1 h-[1px] bg-gray-300" />
+            <Text className="mx-[4%] text-gray-500 text-sm">Or continue with</Text>
+            <View className="flex-1 h-[1px] bg-gray-300" />
           </View>
 
           <TouchableOpacity 
-            className={`flex-row items-center justify-center h-12 bg-white border border-gray-300 rounded-md ${isLoading ? 'opacity-70' : ''}`}
+            className={`flex-row items-center justify-center h-[48px] bg-white border border-gray-300 rounded-md ${isLoading ? 'opacity-70' : ''}`}
             onPress={handleGoogleSignIn}
             disabled={isLoading}
           >
             <Image 
               source={{ uri: 'https://www.google.com/favicon.ico' }}
-              className="w-6 h-6 mr-2"
+              className="w-[24px] h-[24px] mr-[2%]"
             />
             <Text className="text-gray-700">
               {isLoading ? 'Loading...' : 'Sign in with Google'}
             </Text>
           </TouchableOpacity>
 
-          <View className="flex-row justify-center mt-[5%]">
+          <View className="flex-row justify-center mt-[4%]">
             <Text className="text-gray-600 text-sm">Don't have an account? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Register')} disabled={isLoading}>
               <Text className="text-blue-600 text-sm">Sign up</Text>
