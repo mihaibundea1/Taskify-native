@@ -1,149 +1,161 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, ScrollView, Dimensions, Platform, RefreshControl } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useTask } from '../context/TaskContext';
-import Header from '../components/TaskComponents/Header';
-import { SearchBar } from '../components/TaskComponents/SearchBar';
-import { SearchResults } from '../components/TaskComponents/SearchResult';
-import CustomCalendar from '../components/TaskComponents/CustomCalendar';
-import TaskList from '../components/TaskComponents/TaskList';
-import FloatingButton from '../components/TaskComponents/FloatingButton';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+// Dashboard.js
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, Text, Alert } from 'react-native';
+import { useUser } from '@clerk/clerk-expo';
+import Calendar from '../components/Calendar';
+import TaskList from '../components/TaskList';
+import TaskForm from '../components/TaskForm';
+import SearchBar from '../components/SearchBar';
+import { taskService } from '../services/taskService';
 
 export default function Task() {
-  const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
-
-  const {
-    selectedDate,
-    setSelectedDate,
-    getMarkedDates,
-    searchTasks,
-    refreshTasks
-  } = useTask();
-
+  const { user } = useUser();
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [tasks, setTasks] = useState([]);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Refresh tasks when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      refreshTasks?.();
-    }, [refreshTasks])
+  useEffect(() => {
+    loadTasks();
+  }, [user?.id]);
+
+  const loadTasks = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      const userTasks = await taskService.getTasks(user.id);
+      setTasks(userTasks);
+    } catch (error) {
+      console.error('Error loading tasks:', error);
+      setError('Could not load tasks. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveTask = async (taskData) => {
+    if (!user?.id) return;
+    
+    try {
+      if (editingTask) {
+        await taskService.updateTask(editingTask.id, {
+          ...taskData[0],
+          userId: user.id
+        });
+        setTasks(prevTasks => 
+          prevTasks.map(task => 
+            task.id === editingTask.id ? { ...task, ...taskData[0] } : task
+          )
+        );
+      } else {
+        const newTasks = await Promise.all(
+          taskData.map(task => taskService.addTask(user.id, task))
+        );
+        setTasks(prevTasks => [...prevTasks, ...newTasks]);
+      }
+      
+      setIsFormOpen(false);
+      setEditingTask(null);
+    } catch (error) {
+      Alert.alert('Error', 'Could not save task. Please try again.');
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    try {
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+      await taskService.deleteTask(taskId);
+    } catch (error) {
+      Alert.alert('Error', 'Could not delete task. Please try again.');
+      const deletedTask = tasks.find(task => task.id === taskId);
+      if (deletedTask) {
+        setTasks(prevTasks => [...prevTasks, deletedTask]);
+      }
+    }
+  };
+
+  const handleEditTask = (task) => {
+    setEditingTask(task);
+    setIsFormOpen(true);
+  };
+
+  const filteredTasks = tasks.filter(task => 
+    task?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    task?.description?.toLowerCase().includes(searchQuery.toLowerCase()) || false
   );
 
-  const handleSearch = useCallback((text) => {
-    setSearchQuery(text);
-    if (text.trim()) {
-      const results = searchTasks(text);
-      setSearchResults(results);
-    } else {
-      setSearchResults([]);
-    }
-  }, [searchTasks]);
-
-  const handleSearchResultPress = useCallback((task) => {
-    setSearchQuery('');
-    setSearchResults([]);
-    setSelectedDate(task.date);
-    navigation.navigate('TaskDetails', { date: task.date });
-  }, [navigation, setSelectedDate]);
-
-  const handleAddTask = useCallback((date) => {
-    const taskDate = date || new Date().toISOString().split('T')[0];
-    if (!date) {
-      setSelectedDate(taskDate);
-    }
-    navigation.navigate('TaskDetails', { date: taskDate });
-  }, [navigation, setSelectedDate]);
-
-  const handleDayPress = useCallback((day) => {
-    setSelectedDate(day.dateString);
-  }, [setSelectedDate]);
-
-  const handleRefresh = useCallback(async () => {
-    if (refreshTasks) {
-      setIsRefreshing(true);
-      await refreshTasks();
-      setIsRefreshing(false);
-    }
-  }, [refreshTasks]);
-
-  const markedDates = useMemo(() => ({
-    ...getMarkedDates(),
-    [selectedDate]: {
-      ...getMarkedDates()[selectedDate],
-      selected: true,
-      selectedColor: '#6366f1',
-    }
-  }), [getMarkedDates, selectedDate]);
+  if (error) {
+    return (
+      <View className="p-4 bg-red-50 rounded-lg">
+        <Text className="text-red-600">{error}</Text>
+        <Text 
+          className="mt-2 text-sm underline"
+          onPress={() => loadTasks()}
+        >
+          Try Again
+        </Text>
+      </View>
+    );
+  }
 
   return (
-    <View 
-      className="flex-1 bg-gray-50 "
-    >
-      {/* Fixed Header Section */}
-      <View className="bg-gray-50 z-10 shadow-sm">
-        <Header />
+    <View className="flex-1 bg-gray-50">
+      <View className="mb-6 px-4">
         <SearchBar
-          value={searchQuery}
-          onChangeText={handleSearch}
-          onClear={useCallback(() => {
-            setSearchQuery('');
-            setSearchResults([]);
-          }, [])}
+          tasks={tasks}
+          onTaskSelect={(task) => {
+            setSelectedDate(new Date(task.date));
+          }}
         />
       </View>
 
-      {/* Scrollable Content */}
-      {searchQuery ? (
-        <SearchResults
-          results={searchResults}
-          onResultPress={handleSearchResultPress}
-          className="flex-1 mx-4"
-        />
-      ) : (
-        <ScrollView
+      <View className="flex-1 px-4">
+        <ScrollView 
           className="flex-1"
-          contentContainerClassName="grow"
           showsVerticalScrollIndicator={false}
-          refreshControl={
-            Platform.OS === 'ios' ? (
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                tintColor="#6366f1"
-              />
-            ) : null
-          }
         >
-          {/* Calendar Section */}
-          <View className="mx-4 my-2">
-            <View className="bg-white rounded-xl shadow-sm">
-              <CustomCalendar
-                selectedDate={selectedDate}
-                onDayPress={handleDayPress}
-                markedDates={markedDates}
-              />
-            </View>
-          </View>
-          
-          {/* Task List Section */}
-          <View className="flex-1 mx-4 mt-2">
-            <TaskList selectedDate={selectedDate} />
-          </View>
-          
-          {/* Bottom Padding for FloatingButton */}
-          <View className="h-24" />
-        </ScrollView>
-      )}
+          <Calendar
+            selectedDate={selectedDate}
+            currentMonth={currentMonth}
+            onDateSelect={setSelectedDate}
+            tasks={tasks}
+            onPrevMonth={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1))}
+            onNextMonth={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1))}
+          />
 
-      {/* Floating Button - always on top */}
-      <View className="absolute bottom-6 right-4">
-        <FloatingButton onPress={() => handleAddTask(selectedDate)} />
+          <View className="mt-6">
+            <TaskList
+              selectedDate={selectedDate}
+              tasks={filteredTasks}
+              onAddTask={() => {
+                setEditingTask(null);
+                setIsFormOpen(true);
+              }}
+              onEditTask={handleEditTask}
+              onDeleteTask={handleDeleteTask}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
+          </View>
+        </ScrollView>
       </View>
+
+      <TaskForm
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setEditingTask(null);
+        }}
+        onSave={handleSaveTask}
+        selectedDate={selectedDate}
+        editingTask={editingTask}
+      />
     </View>
   );
 }

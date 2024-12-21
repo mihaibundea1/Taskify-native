@@ -1,8 +1,6 @@
 import { initializeApp } from '@react-native-firebase/app';
-import { getFirestore } from '@react-native-firebase/firestore';
+import firestore from '@react-native-firebase/firestore';
 
-// For React Native, we can either use a .env file with react-native-dotenv
-// or directly store the config values here
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY || 'your-api-key',
   authDomain: process.env.FIREBASE_AUTH_DOMAIN || 'your-auth-domain',
@@ -16,6 +14,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Initialize Firestore
-export const db = getFirestore(app);
+export const db = firestore(app);
 
 export default app;
