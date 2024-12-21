@@ -1,38 +1,44 @@
-import { app } from '../config/firebase';
-import firestore from '@react-native-firebase/firestore';
+import { db } from '../config/firebase';
+import { collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
-class TaskService {
-  async getTasks(userId) {
-    const tasksRef = firestore(app).collection('tasks');
-    const q = tasksRef.where('userId', '==', userId);
-    const querySnapshot = await q.get();
-
+export const taskService = {
+  getTasks: async (userId) => {
+    const tasksRef = collection(db, 'tasks');
+    const q = query(tasksRef, where('userId', '==', userId));
+    const querySnapshot = await getDocs(q);
+    
     return querySnapshot.docs.map(doc => ({
       id: doc.id,
-      ...doc.data(),
+      ...doc.data()
     }));
-  }
+  },
 
-  async addTask(userId, task) {
-    const tasksRef = firestore(app).collection('tasks');
-    const taskWithUser = { ...task, userId };
-    const docRef = await tasksRef.add(taskWithUser);
-
+  addTask: async (userId, task) => {
+    const tasksRef = collection(db, 'tasks');
+    const docRef = await addDoc(tasksRef, {
+      ...task,
+      userId
+    });
+    
     return {
       id: docRef.id,
-      ...taskWithUser,
+      userId,
+      ...task
     };
-  }
+  },
 
-  async updateTask(taskId, task) {
-    const taskRef = firestore(app).collection('tasks').doc(taskId);
-    await taskRef.update(task);
-  }
+  updateTask: async (taskId, task) => {
+    const taskRef = doc(db, 'tasks', taskId);
+    await updateDoc(taskRef, task);
+  },
 
-  async deleteTask(taskId) {
-    const taskRef = firestore(app).collection('tasks').doc(taskId);
-    await taskRef.delete();
-  }
-}
+  deleteTask: async (taskId) => {
+    const taskRef = doc(db, 'tasks', taskId);
+    await deleteDoc(taskRef);
+  },
 
-export const taskService = new TaskService();
+  updateTaskNotifications: async (taskId, notifications) => {
+    const taskRef = doc(db, 'tasks', taskId);
+    await updateDoc(taskRef, { notifications });
+  }
+};

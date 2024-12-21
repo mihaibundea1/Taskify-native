@@ -1,161 +1,146 @@
-// Dashboard.js
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Text, Alert } from 'react-native';
-import { useUser } from '@clerk/clerk-expo';
-import Calendar from '../components/Calendar';
-import TaskList from '../components/TaskList';
-import TaskForm from '../components/TaskForm';
-import SearchBar from '../components/SearchBar';
-import { taskService } from '../services/taskService';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, ScrollView, Platform, RefreshControl } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useTask } from '../context/TaskContext'; // Ensure you are using the correct hook
+import Header from '../components/TaskComponents/Header';
+import { SearchBar } from '../components/TaskComponents/SearchBar';
+import { SearchResults } from '../components/TaskComponents/SearchResult';
+import CustomCalendar from '../components/TaskComponents/CustomCalendar';
+import TaskList from '../components/TaskComponents/TaskList';
+import FloatingButton from '../components/TaskComponents/FloatingButton';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Task() {
-  const { user } = useUser();
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [tasks, setTasks] = useState([]);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
+
+  const {
+    selectedDate,
+    setSelectedDate,
+    getMarkedDates,
+    searchTasks,
+    refreshTasks, // Ensure this is being accessed from context
+  } = useTask();
+
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadTasks();
-  }, [user?.id]);
-
-  const loadTasks = async () => {
-    if (!user?.id) return;
-    
-    try {
-      setIsLoading(true);
-      setError(null);
-      const userTasks = await taskService.getTasks(user.id);
-      setTasks(userTasks);
-    } catch (error) {
-      console.error('Error loading tasks:', error);
-      setError('Could not load tasks. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSaveTask = async (taskData) => {
-    if (!user?.id) return;
-    
-    try {
-      if (editingTask) {
-        await taskService.updateTask(editingTask.id, {
-          ...taskData[0],
-          userId: user.id
-        });
-        setTasks(prevTasks => 
-          prevTasks.map(task => 
-            task.id === editingTask.id ? { ...task, ...taskData[0] } : task
-          )
-        );
-      } else {
-        const newTasks = await Promise.all(
-          taskData.map(task => taskService.addTask(user.id, task))
-        );
-        setTasks(prevTasks => [...prevTasks, ...newTasks]);
-      }
-      
-      setIsFormOpen(false);
-      setEditingTask(null);
-    } catch (error) {
-      Alert.alert('Error', 'Could not save task. Please try again.');
-    }
-  };
-
-  const handleDeleteTask = async (taskId) => {
-    try {
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-      await taskService.deleteTask(taskId);
-    } catch (error) {
-      Alert.alert('Error', 'Could not delete task. Please try again.');
-      const deletedTask = tasks.find(task => task.id === taskId);
-      if (deletedTask) {
-        setTasks(prevTasks => [...prevTasks, deletedTask]);
-      }
-    }
-  };
-
-  const handleEditTask = (task) => {
-    setEditingTask(task);
-    setIsFormOpen(true);
-  };
-
-  const filteredTasks = tasks.filter(task => 
-    task?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    task?.description?.toLowerCase().includes(searchQuery.toLowerCase()) || false
+  // Refresh tasks when the screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      refreshTasks(); // Call refreshTasks here
+    }, [refreshTasks]) // Make sure refreshTasks is available
   );
 
-  if (error) {
-    return (
-      <View className="p-4 bg-red-50 rounded-lg">
-        <Text className="text-red-600">{error}</Text>
-        <Text 
-          className="mt-2 text-sm underline"
-          onPress={() => loadTasks()}
-        >
-          Try Again
-        </Text>
-      </View>
-    );
-  }
+  // Handle search input and filter results
+  const handleSearch = useCallback((text) => {
+    setSearchQuery(text);
+    if (text.trim()) {
+      const results = searchTasks(text);
+      setSearchResults(results);
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchTasks]);
+
+  // Handle when a search result is pressed
+  const handleSearchResultPress = useCallback((task) => {
+    setSearchQuery('');  // Clear search query
+    setSearchResults([]); // Clear search results
+    setSelectedDate(task.date); // Set the selected date to the task's date
+    navigation.navigate('TaskDetails', { date: task.date }); // Navigate to TaskDetails screen
+  }, [navigation, setSelectedDate]);
+
+  // Handle adding a task
+  const handleAddTask = useCallback((date) => {
+    const taskDate = date || new Date().toISOString().split('T')[0]; // Use current date if not provided
+    if (!date) {
+      setSelectedDate(taskDate); // Set the selected date if none is passed
+    }
+    navigation.navigate('TaskDetails', { date: taskDate }); // Navigate to TaskDetails screen
+  }, [navigation, setSelectedDate]);
+
+  // Handle day press on calendar
+  const handleDayPress = useCallback((day) => {
+    setSelectedDate(day.dateString); // Set the selected date
+  }, [setSelectedDate]);
+
+  // Handle pull-to-refresh
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refreshTasks(); // Ensure refreshTasks is available and called
+    setIsRefreshing(false);
+  }, [refreshTasks]);
+
+  // Memoize marked dates for the calendar
+  const markedDates = useMemo(() => {
+    return {
+      ...getMarkedDates(),
+      [selectedDate]: {
+        ...getMarkedDates()[selectedDate],
+        selected: true,
+        selectedColor: '#6366f1',
+      }
+    };
+  }, [getMarkedDates, selectedDate]);
 
   return (
     <View className="flex-1 bg-gray-50">
-      <View className="mb-6 px-4">
+      <View className="bg-gray-50 z-10 shadow-sm">
+        <Header />
         <SearchBar
-          tasks={tasks}
-          onTaskSelect={(task) => {
-            setSelectedDate(new Date(task.date));
-          }}
+          value={searchQuery}
+          onChangeText={handleSearch}
+          onClear={useCallback(() => {
+            setSearchQuery('');
+            setSearchResults([]);
+          }, [])}
         />
       </View>
 
-      <View className="flex-1 px-4">
-        <ScrollView 
+      {searchQuery ? (
+        <SearchResults
+          results={searchResults}
+          onResultPress={handleSearchResultPress}
+          className="flex-1 mx-4"
+        />
+      ) : (
+        <ScrollView
           className="flex-1"
+          contentContainerClassName="grow"
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            Platform.OS === 'ios' ? (
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                tintColor="#6366f1"
+              />
+            ) : null
+          }
         >
-          <Calendar
-            selectedDate={selectedDate}
-            currentMonth={currentMonth}
-            onDateSelect={setSelectedDate}
-            tasks={tasks}
-            onPrevMonth={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1))}
-            onNextMonth={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1))}
-          />
-
-          <View className="mt-6">
-            <TaskList
-              selectedDate={selectedDate}
-              tasks={filteredTasks}
-              onAddTask={() => {
-                setEditingTask(null);
-                setIsFormOpen(true);
-              }}
-              onEditTask={handleEditTask}
-              onDeleteTask={handleDeleteTask}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-            />
+          <View className="mx-4 my-2">
+            <View className="bg-white rounded-xl shadow-sm">
+              <CustomCalendar
+                selectedDate={selectedDate}
+                onDayPress={handleDayPress}
+                markedDates={markedDates}
+              />
+            </View>
           </View>
-        </ScrollView>
-      </View>
 
-      <TaskForm
-        isOpen={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setEditingTask(null);
-        }}
-        onSave={handleSaveTask}
-        selectedDate={selectedDate}
-        editingTask={editingTask}
-      />
+          <View className="flex-1 mx-4 mt-2">
+            <TaskList selectedDate={selectedDate} />
+          </View>
+
+          <View className="h-24" />
+        </ScrollView>
+      )}
+
+      <View className="absolute bottom-6 right-4">
+        <FloatingButton onPress={() => handleAddTask(selectedDate)} />
+      </View>
     </View>
   );
 }

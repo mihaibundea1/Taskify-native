@@ -42,6 +42,12 @@ export function TaskProvider({ children }) {
         }
     };
 
+    // Function to refresh tasks (reload from AsyncStorage)
+    const refreshTasks = async () => {
+        setLoading(true);
+        await loadTasks();
+    };
+
     // Add a new task for a specific date
     const addTask = (date, taskText) => {
         const newTask = {
@@ -63,8 +69,8 @@ export function TaskProvider({ children }) {
     const toggleTask = (date, taskId) => {
         setTasks(prevTasks => ({
             ...prevTasks,
-            [date]: prevTasks[date]?.map(task => 
-                task.id === taskId 
+            [date]: prevTasks[date]?.map(task =>
+                task.id === taskId
                     ? { ...task, completed: !task.completed }
                     : task
             )
@@ -133,7 +139,6 @@ export function TaskProvider({ children }) {
         return searchResults.sort((a, b) => new Date(b.date) - new Date(a.date));
     };
 
-
     return (
         <TaskContext.Provider value={{
             tasks,
@@ -146,7 +151,8 @@ export function TaskProvider({ children }) {
             updateTaskDescription,
             deleteTask,
             getTasksForDate,
-            getMarkedDates
+            getMarkedDates,
+            refreshTasks // Add this function to context
         }}>
             {children}
         </TaskContext.Provider>
