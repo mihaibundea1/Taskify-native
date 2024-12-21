@@ -1,7 +1,8 @@
 // components/TaskDetailsModal.js
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal, ScrollView, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Trash2, Check, X, Calendar, AlignLeft } from 'lucide-react-native';
+import InputField from './InputField'; // Import InputField component
 
 export function TaskDetailsModal({
     visible,
@@ -21,7 +22,7 @@ export function TaskDetailsModal({
             onRequestClose={onClose}
         >
             <View className="flex-1 bg-black/50">
-                <KeyboardAvoidingView 
+                <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
                     className="flex-1"
                     keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 80}
@@ -34,7 +35,7 @@ export function TaskDetailsModal({
                             </TouchableOpacity>
                         </View>
 
-                        <ScrollView 
+                        <ScrollView
                             className="flex-1"
                             keyboardShouldPersistTaps="handled"
                             keyboardDismissMode="interactive"
@@ -44,12 +45,11 @@ export function TaskDetailsModal({
                                     <TouchableOpacity
                                         onPress={() => onToggle(task.id)}
                                         className={`w-6 h-6 rounded-full border-2 mr-3 items-center justify-center
-                      ${task.completed ? 'bg-blue-500 border-blue-500' : 'border-gray-300'}`}
+                                            ${task.completed ? 'bg-blue-500 border-blue-500' : 'border-gray-300'}`}
                                     >
                                         {task.completed && <Check size={16} color="white" />}
                                     </TouchableOpacity>
-                                    <Text className={`text-xl ${task.completed ? 'text-gray-400 line-through' : 'text-gray-800'
-                                        }`}>
+                                    <Text className={`text-xl ${task.completed ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
                                         {task.text}
                                     </Text>
                                 </View>
@@ -67,13 +67,18 @@ export function TaskDetailsModal({
                                             <AlignLeft size={20} color="#666" className="mr-2" />
                                             <Text className="text-gray-800 font-medium">Description</Text>
                                         </View>
-                                        <TextInput
-                                            className="text-gray-600 min-h-[100px]"
-                                            multiline
+                                        <InputField
+                                            icon={<AlignLeft size={20} color="#666" />}
                                             placeholder="Add a description..."
                                             value={task.description}
                                             onChangeText={(text) => onDescriptionChange(task.id, text)}
-                                            textAlignVertical="top"
+                                            multiline
+                                            isPassword={false}
+                                            showPassword={false}
+                                            setShowPassword={null}
+                                            isLoading={false}
+                                            autoCapitalize="sentences"
+                                            keyboardType="default"
                                         />
                                     </View>
 

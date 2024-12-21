@@ -1,10 +1,8 @@
-// components/TaskComponents/CustomCalendar.js
-import React, { useState, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-
 
 const calendarTheme = {
     backgroundColor: '#ffffff',
@@ -45,9 +43,11 @@ const calendarTheme = {
     },
 };
 
+// In the CustomCalendar component, update how you pass the `current` prop:
+
 export default function CustomCalendar({ selectedDate, onDayPress, markedDates, maxHeight }) {
     const [currentMonth, setCurrentMonth] = useState(new Date());
-    const [calendarHeight] = useState(new Animated.Value(hp(45)));
+    const [calendarHeight] = useState(new Animated.Value(hp(50)));
     const [isExpanded, setIsExpanded] = useState(true);
     const [calendarKey, setCalendarKey] = useState(0); // Added to force calendar refresh
 
@@ -95,8 +95,15 @@ export default function CustomCalendar({ selectedDate, onDayPress, markedDates, 
         onDayPress({ dateString: today.toISOString().split('T')[0] });
     };
 
+    // Updated day press handler
+    const handleDayPress = useCallback((day) => {
+        if (selectedDate !== day.dateString) {
+            onDayPress(day);
+        }
+    }, [selectedDate, onDayPress]); // Avoid unnecessary state updates
+
     return (
-        <Animated.View className="px-4" style={{ height: calendarHeight }}>
+        <Animated.View className="px-4" style={{ height: calendarHeight, overflow: 'hidden' }}>
             <View className="bg-white rounded-2xl shadow-md overflow-hidden">
                 <View
                     className="flex-row items-center justify-between border-b border-gray-100"
@@ -114,7 +121,7 @@ export default function CustomCalendar({ selectedDate, onDayPress, markedDates, 
                             style={{
                                 marginLeft: wp(2),
                                 fontSize: wp(4.5)
-                            }}>
+                            }} >
                             {getMonthYearString()}
                         </Text>
                     </TouchableOpacity>
@@ -126,82 +133,27 @@ export default function CustomCalendar({ selectedDate, onDayPress, markedDates, 
                             style={{
                                 paddingHorizontal: wp(3),
                                 paddingVertical: hp(0.5),
-                                marginRight: wp(2)
                             }}
                         >
-                            <Text className="text-indigo-500" style={{ fontSize: wp(3.5) }}>Today</Text>
+                            <Text className="text-indigo-500">Today</Text>
                         </TouchableOpacity>
-
-                        <TouchableOpacity
-                            onPress={goToPreviousMonth}
-                            style={{ padding: wp(2) }}
-                        >
-                            <ChevronLeft size={wp(5)} color="#6366f1" />
+                        <TouchableOpacity onPress={goToPreviousMonth}>
+                            <ChevronLeft size={wp(6)} color="#6366f1" />
                         </TouchableOpacity>
-
-                        <TouchableOpacity
-                            onPress={goToNextMonth}
-                            style={{ padding: wp(2) }}
-                        >
-                            <ChevronRight size={wp(5)} color="#6366f1" />
+                        <TouchableOpacity onPress={goToNextMonth}>
+                            <ChevronRight size={wp(6)} color="#6366f1" />
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                {isExpanded && (
-                    <Calendar
-                        key={calendarKey} // Force refresh when navigation happens
-                        current={currentMonth.toISOString()}
-                        theme={calendarTheme}
-                        onDayPress={onDayPress}
-                        markedDates={markedDates}
-                        enableSwipeMonths={true}
-                        onMonthChange={handleMonthChange}
-                        hideExtraDays={true}
-                        hideArrows={true}
-                        style={{
-                            borderRadius: wp(4),
-                            padding: wp(2.5),
-                        }}
-                        dayComponent={({ date, state, marking }) => {
-                            const isSelected = marking?.selected;
-                            const hasEvents = marking?.marked;
-                            const isToday = date.dateString === new Date().toISOString().split('T')[0];
-
-                            return (
-                                <TouchableOpacity
-                                    onPress={() => onDayPress(date)}
-                                    className={`items-center justify-center
-                                        ${isSelected ? 'bg-indigo-500' : 'bg-transparent'}
-                                        ${isToday && !isSelected ? 'border border-indigo-500' : ''}
-                                    `}
-                                    style={{
-                                        width: wp(10),
-                                        height: wp(10),
-                                        borderRadius: wp(5),
-                                    }}
-                                >
-                                    <Text className={`
-                                        ${isSelected ? 'text-white' : ''}
-                                        ${state === 'disabled' ? 'text-gray-300' : ''}
-                                        ${isToday && !isSelected ? 'text-indigo-500' : 'text-gray-800'}
-                                    `}
-                                        style={{ fontSize: wp(4) }}>
-                                        {date.day}
-                                    </Text>
-                                    {hasEvents && !isSelected && (
-                                        <View className="absolute bg-indigo-500 rounded-full"
-                                            style={{
-                                                bottom: wp(1),
-                                                width: wp(1),
-                                                height: wp(1),
-                                            }} />
-                                    )}
-                                </TouchableOpacity>
-                            );
-                        }}
-                    />
-                )}
+                <Calendar
+                    key={calendarKey}
+                    current={currentMonth.toISOString().split('T')[0]}  // Convert Date to YYYY-MM-DD string
+                    onDayPress={handleDayPress}
+                    markedDates={markedDates}
+                    theme={calendarTheme}
+                    onMonthChange={handleMonthChange}
+                />
             </View>
         </Animated.View>
     );

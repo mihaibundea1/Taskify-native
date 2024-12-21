@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, ScrollView, Platform, RefreshControl } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useTask } from '../context/TaskContext'; // Ensure you are using the correct hook
+import { useTask } from '../context/TaskContext';
 import Header from '../components/TaskComponents/Header';
 import { SearchBar } from '../components/TaskComponents/SearchBar';
 import { SearchResults } from '../components/TaskComponents/SearchResult';
@@ -19,21 +19,35 @@ export default function Task() {
     setSelectedDate,
     getMarkedDates,
     searchTasks,
-    refreshTasks, // Ensure this is being accessed from context
+    refreshTasks,
   } = useTask();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Refresh tasks when the screen is focused
+  // Optimized refresh effect
   useFocusEffect(
     useCallback(() => {
-      refreshTasks(); // Call refreshTasks here
-    }, [refreshTasks]) // Make sure refreshTasks is available
+      let isMounted = true;
+      const refresh = async () => {
+        if (isMounted && !isRefreshing) {
+          setIsRefreshing(true);
+          await refreshTasks();
+          if (isMounted) {
+            setIsRefreshing(false);
+          }
+        }
+      };
+      refresh();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [])
   );
 
-  // Handle search input and filter results
+  // Memoized search handler
   const handleSearch = useCallback((text) => {
     setSearchQuery(text);
     if (text.trim()) {
@@ -44,44 +58,47 @@ export default function Task() {
     }
   }, [searchTasks]);
 
-  // Handle when a search result is pressed
+  // Memoized search result press handler
   const handleSearchResultPress = useCallback((task) => {
-    setSearchQuery('');  // Clear search query
-    setSearchResults([]); // Clear search results
-    setSelectedDate(task.date); // Set the selected date to the task's date
-    navigation.navigate('TaskDetails', { date: task.date }); // Navigate to TaskDetails screen
+    setSearchQuery('');
+    setSearchResults([]);
+    setSelectedDate(task.date);
+    navigation.navigate('TaskDetails', { date: task.date });
   }, [navigation, setSelectedDate]);
 
-  // Handle adding a task
+  // Memoized add task handler
   const handleAddTask = useCallback((date) => {
-    const taskDate = date || new Date().toISOString().split('T')[0]; // Use current date if not provided
-    if (!date) {
-      setSelectedDate(taskDate); // Set the selected date if none is passed
+    const taskDate = date || new Date().toISOString().split('T')[0];
+    if (taskDate !== selectedDate) {
+      setSelectedDate(taskDate);
     }
-    navigation.navigate('TaskDetails', { date: taskDate }); // Navigate to TaskDetails screen
-  }, [navigation, setSelectedDate]);
+    navigation.navigate('TaskDetails', { date: taskDate });
+  }, [navigation, setSelectedDate, selectedDate]);
 
-  // Handle day press on calendar
+  // Memoized day press handler
   const handleDayPress = useCallback((day) => {
-    setSelectedDate(day.dateString); // Set the selected date
-  }, [setSelectedDate]);
+    if (day.dateString !== selectedDate) {
+      setSelectedDate(day.dateString);
+    }
+  }, [selectedDate, setSelectedDate]);
 
-  // Handle pull-to-refresh
+  // Memoized refresh handler
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await refreshTasks(); // Ensure refreshTasks is available and called
+    await refreshTasks();
     setIsRefreshing(false);
   }, [refreshTasks]);
 
-  // Memoize marked dates for the calendar
+  // Memoized marked dates
   const markedDates = useMemo(() => {
+    const marked = getMarkedDates();
     return {
-      ...getMarkedDates(),
+      ...marked,
       [selectedDate]: {
-        ...getMarkedDates()[selectedDate],
+        ...marked[selectedDate],
         selected: true,
         selectedColor: '#6366f1',
-      }
+      },
     };
   }, [getMarkedDates, selectedDate]);
 
@@ -92,10 +109,10 @@ export default function Task() {
         <SearchBar
           value={searchQuery}
           onChangeText={handleSearch}
-          onClear={useCallback(() => {
+          onClear={() => {
             setSearchQuery('');
             setSearchResults([]);
-          }, [])}
+          }}
         />
       </View>
 
@@ -110,17 +127,15 @@ export default function Task() {
           className="flex-1"
           contentContainerClassName="grow"
           showsVerticalScrollIndicator={false}
-          refreshControl={
-            Platform.OS === 'ios' ? (
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                tintColor="#6366f1"
-              />
-            ) : null
-          }
+          refreshControl={Platform.OS === 'ios' && (
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor="#6366f1"
+            />
+          )}
         >
-          <View className="mx-4 my-2">
+          <View className="mx-4 my-4">
             <View className="bg-white rounded-xl shadow-sm">
               <CustomCalendar
                 selectedDate={selectedDate}

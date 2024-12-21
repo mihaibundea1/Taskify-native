@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, TouchableOpacity, Platform } from 'react-native';
+import { View, TextInput, TouchableOpacity } from 'react-native';
 import { Plus } from 'lucide-react-native';
 
 export function AddTaskInput({ value, onChangeText, onSubmit }) {
@@ -14,6 +14,8 @@ export function AddTaskInput({ value, onChangeText, onSubmit }) {
           onChangeText={onChangeText}
           onSubmitEditing={onSubmit}
           blurOnSubmit={false}
+          returnKeyType="done"
+          style={{ paddingHorizontal: 10 }}  // Adjust the padding for text
         />
         <TouchableOpacity 
           onPress={onSubmit}
