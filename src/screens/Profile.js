@@ -63,7 +63,7 @@ const Profile = () => {
           onPress={() => navigation.navigate('Settings')}
           className="mr-4"
         >
-          <Settings size={24} color="#4B5563" />
+          <Settings size={24} color="#ffffff" />
         </StyledTouchable>
       ),
       headerShown: true,
