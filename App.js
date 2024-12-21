@@ -12,6 +12,7 @@ import TaskDetails from './src/screens/TaskDetails';
 import Login from './src/screens/Login';
 import Register from './src/screens/Register';
 import Profile from './src/screens/Profile';
+import VerificationScreen from './src/screens/VerificationScreen';
 import Settings from './src/screens/Settings';
 import { VITE_CLERK_PUBLISHABLE_KEY } from '@env';
 import { TaskProvider } from './src/context/TaskContext';
@@ -171,6 +172,8 @@ export default function App() {
             >
               <Stack.Screen name="Login" component={Login} />
               <Stack.Screen name="Register" component={Register} />
+              <Stack.Screen name="VerifyCode" component={VerificationScreen} />
+
             </Stack.Navigator>
           </SignedOut>
         </NavigationContainer>

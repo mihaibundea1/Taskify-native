@@ -1,276 +1,152 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
-  TextInput, 
   TouchableOpacity, 
-  Image, 
   ScrollView, 
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Keyboard,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  Alert
 } from 'react-native';
-import { Mail, Lock, Eye, EyeOff, User, Phone } from 'lucide-react-native';
-import { useSignUp, useOAuth } from '@clerk/clerk-expo';
-import * as WebBrowser from 'expo-web-browser';
-
-WebBrowser.maybeCompleteAuthSession();
+import { Mail, Lock, User, AtSign } from 'lucide-react-native';
+import { useSignUp } from '@clerk/clerk-expo';
+import InputField from '../components/InputField';
 
 export default function Register({ navigation }) {
-  const { signUp, setActive, isLoaded } = useSignUp();
-  const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
-  
+  const { isLoaded, signUp, setActive } = useSignUp();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Refs to store temporary input values
-  const inputRefs = {
-    firstName: useRef(''),
-    lastName: useRef(''),
-    email: useRef(''),
-    phone: useRef(''),
-    password: useRef('')
-  };
-
-  // State for final form data
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    username: '',
     email: '',
-    phone: '',
     password: ''
   });
 
-  // Handle keyboard dismiss and save all temporary values to state
-  const handleKeyboardDismiss = () => {
-    const newFormData = {
-      firstName: inputRefs.firstName.current,
-      lastName: inputRefs.lastName.current,
-      email: inputRefs.email.current,
-      phone: inputRefs.phone.current,
-      password: inputRefs.password.current
-    };
-    setFormData(newFormData);
-    Keyboard.dismiss();
-  };
-
-  const handleSignUp = async () => {
+  const onSignUpPress = async () => {
     if (!isLoaded) return;
     
-    // Save any pending input values before submission
-    handleKeyboardDismiss();
-
     try {
       setIsLoading(true);
-
-      const signUpAttempt = await signUp.create({
+      
+      // Create the sign-up attempt without username
+      await signUp.create({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         emailAddress: formData.email,
         password: formData.password,
       });
-
-      await signUpAttempt.update({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-      });
-
-      if (formData.phone) {
-        try {
-          await signUpAttempt.createPhoneNumberVerification({
-            phoneNumber: formData.phone
-          });
-        } catch (phoneError) {
-          console.log('Phone number could not be added:', phoneError);
-        }
-      }
-
-      await signUpAttempt.prepareEmailAddressVerification();
-
-      Alert.alert(
-        'Verify your email',
-        'Please check your email to verify your account.',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('Login')
-          }
-        ]
-      );
+  
+      // Send verification email
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      
+      // Navigate to verification screen
+      navigation.navigate("VerifyCode");
+      
     } catch (err) {
       Alert.alert('Error', err.message || 'Failed to sign up');
+      console.log("Error:> " + (err?.status || ""));
+      console.log("Error:> " + (err?.errors ? JSON.stringify(err.errors) : err));
     } finally {
       setIsLoading(false);
     }
   };
-
-  const handleGoogleSignUp = async () => {
-    try {
-      setIsLoading(true);
-      const { createdSessionId, signIn, signUp, setActive } = await startOAuthFlow();
-      
-      if (createdSessionId) {
-        await setActive({ session: createdSessionId });
-        Alert.alert('Success', 'Signed up with Google successfully!');
-      }
-    } catch (err) {
-      Alert.alert('Error', err.message || 'Failed to sign up with Google');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const InputField = ({ 
-    icon, 
-    placeholder, 
-    inputRef,
-    initialValue,
-    secureTextEntry, 
-    keyboardType = 'default',
-    isPassword = false
-  }) => (
-    <View className="relative w-full h-12">
-      <View className="absolute left-3 top-[25%] z-10">
-        {icon}
-      </View>
-      <TextInput
-        defaultValue={initialValue}
-        onChangeText={(text) => {
-          inputRef.current = text;
-        }}
-        placeholder={placeholder}
-        placeholderTextColor="#9CA3AF"
-        secureTextEntry={secureTextEntry}
-        keyboardType={keyboardType}
-        className={`w-full h-full pl-10 ${isPassword ? 'pr-12' : 'pr-3'} bg-white border border-gray-300 rounded-md text-gray-900 placeholder:text-gray-400`}
-        autoCapitalize="none"
-        editable={!isLoading}
-        returnKeyType="next"
-        enablesReturnKeyAutomatically
-      />
-      {isPassword && (
-        <TouchableOpacity 
-          onPress={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-[25%] z-10"
-          disabled={isLoading}
-        >
-          {showPassword ? 
-            <EyeOff size={20} color="#9CA3AF" /> : 
-            <Eye size={20} color="#9CA3AF" />
-          }
-        </TouchableOpacity>
-      )}
-    </View>
-  );
+  
+  const onSignInPress = () => navigation.replace("SignIn");
 
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       className="flex-1"
     >
-      <TouchableWithoutFeedback onPress={handleKeyboardDismiss}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView 
-          className="flex-1 bg-gray-50"
+          className="flex-1 bg-white"
           keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
         >
-          <View className="min-h-screen w-[90%] mx-auto py-[10%]">
-            <View className="w-full">
-              <Text className="text-3xl font-bold text-center mb-[8%]">Create Account</Text>
-              
-              <View className="space-y-4 mb-[5%]">
-                <View className="flex-row space-x-3">
-                  <View className="flex-1">
-                    <Text className="text-sm font-medium text-gray-700 mb-1">First Name</Text>
-                    <InputField
-                      icon={<User size={20} color="#9CA3AF" />}
-                      placeholder="First Name"
-                      inputRef={inputRefs.firstName}
-                      initialValue={formData.firstName}
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-sm font-medium text-gray-700 mb-1">Last Name</Text>
-                    <InputField
-                      icon={<User size={20} color="#9CA3AF" />}
-                      placeholder="Last Name"
-                      inputRef={inputRefs.lastName}
-                      initialValue={formData.lastName}
-                    />
-                  </View>
-                </View>
+          <View className="min-h-screen px-6 pt-16">
+            <Text className="text-3xl font-bold text-gray-900 mb-8">
+              Create Account
+            </Text>
+            
+            <View className="flex-row items-center my-8">
+              <View className="flex-1 h-[1px] bg-gray-200" />
+              <Text className="mx-4 text-gray-500">create account with</Text>
+              <View className="flex-1 h-[1px] bg-gray-200" />
+            </View>
 
-                <View>
-                  <Text className="text-sm font-medium text-gray-700 mb-1">Email</Text>
+            <View className="space-y-4">
+              <View className="flex-row space-x-3">
+                <View className="flex-1">
+                  <Text className="text-sm font-medium text-gray-700 mb-1">First Name</Text>
                   <InputField
-                    icon={<Mail size={20} color="#9CA3AF" />}
-                    placeholder="Email"
-                    inputRef={inputRefs.email}
-                    initialValue={formData.email}
-                    keyboardType="email-address"
+                    icon={<User size={20} color="#9CA3AF" />}
+                    placeholder="First Name"
+                    value={formData.firstName}
+                    onChangeText={(text) => setFormData({...formData, firstName: text})}
+                    isLoading={isLoading}
                   />
                 </View>
-
-                <View>
-                  <Text className="text-sm font-medium text-gray-700 mb-1">Phone</Text>
+                <View className="flex-1">
+                  <Text className="text-sm font-medium text-gray-700 mb-1">Last Name</Text>
                   <InputField
-                    icon={<Phone size={20} color="#9CA3AF" />}
-                    placeholder="Phone number"
-                    inputRef={inputRefs.phone}
-                    initialValue={formData.phone}
-                    keyboardType="phone-pad"
-                  />
-                </View>
-
-                <View>
-                  <Text className="text-sm font-medium text-gray-700 mb-1">Password</Text>
-                  <InputField
-                    icon={<Lock size={20} color="#9CA3AF" />}
-                    placeholder="Password"
-                    inputRef={inputRefs.password}
-                    initialValue={formData.password}
-                    secureTextEntry={!showPassword}
-                    isPassword={true}
+                    icon={<User size={20} color="#9CA3AF" />}
+                    placeholder="Last Name"
+                    value={formData.lastName}
+                    onChangeText={(text) => setFormData({...formData, lastName: text})}
+                    isLoading={isLoading}
                   />
                 </View>
               </View>
 
-              <TouchableOpacity 
-                className={`w-full bg-blue-600 py-3 rounded-md mb-[5%] ${isLoading ? 'opacity-70' : ''}`}
-                onPress={handleSignUp}
-                disabled={isLoading}
-              >
-                <Text className="text-white text-center font-semibold text-lg">
-                  {isLoading ? 'Creating Account...' : 'Sign Up'}
-                </Text>
-              </TouchableOpacity>
-
-              <View className="flex-row items-center mb-[5%]">
-                <View className="flex-1 h-px bg-gray-300" />
-                <Text className="mx-4 text-gray-500">Or continue with</Text>
-                <View className="flex-1 h-px bg-gray-300" />
-              </View>
-
-              <TouchableOpacity 
-                className={`w-full flex-row items-center justify-center py-3 bg-white border border-gray-300 rounded-md mb-[5%] ${isLoading ? 'opacity-70' : ''}`}
-                onPress={handleGoogleSignUp}
-                disabled={isLoading}
-              >
-                <Image 
-                  source={{ uri: 'https://www.google.com/favicon.ico' }}
-                  className="w-6 h-6 mr-2"
+              <View>
+                <Text className="text-sm font-medium text-gray-700 mb-1">Email</Text>
+                <InputField
+                  icon={<Mail size={20} color="#9CA3AF" />}
+                  placeholder="Email"
+                  value={formData.email}
+                  onChangeText={(text) => setFormData({...formData, email: text})}
+                  isLoading={isLoading}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
                 />
-                <Text className="text-gray-700 font-medium">
-                  {isLoading ? 'Loading...' : 'Sign up with Google'}
-                </Text>
-              </TouchableOpacity>
-
-              <View className="flex-row justify-center">
-                <Text className="text-gray-600">Already have an account? </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={isLoading}>
-                  <Text className="text-blue-600">Login</Text>
-                </TouchableOpacity>
               </View>
+
+              <View>
+                <Text className="text-sm font-medium text-gray-700 mb-1">Password</Text>
+                <InputField
+                  icon={<Lock size={20} color="#9CA3AF" />}
+                  placeholder="Password"
+                  value={formData.password}
+                  onChangeText={(text) => setFormData({...formData, password: text})}
+                  secureTextEntry={!showPassword}
+                  isPassword={true}
+                  showPassword={showPassword}
+                  setShowPassword={setShowPassword}
+                  isLoading={isLoading}
+                />
+              </View>
+            </View>
+
+            <TouchableOpacity 
+              className={`w-full h-12 bg-[#E63A1E] rounded-lg items-center justify-center mt-6 ${isLoading ? 'opacity-70' : ''}`}
+              onPress={onSignUpPress}
+              disabled={isLoading}
+            >
+              <Text className="text-white font-bold text-lg">
+                {isLoading ? 'Creating Account...' : 'Register'}
+              </Text>
+            </TouchableOpacity>
+
+            <View className="flex-row justify-center items-center mt-6">
+              <Text className="text-gray-600">Already have an account? </Text>
+              <TouchableOpacity onPress={onSignInPress} disabled={isLoading}>
+                <Text className="text-blue-500 font-medium">Login</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
