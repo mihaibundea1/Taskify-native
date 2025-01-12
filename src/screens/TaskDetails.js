@@ -176,17 +176,24 @@ export default function TaskDetails({ route }) {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
-      {/* Network status warning */}
-      {renderNetworkWarning()}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 70} // Adjust this offset as per your header height
+      style={{ flex: 1 }}
+    >
+      {/* Main Container */}
+      <View className="flex-1 bg-gray-50">
+        {/* Network Status Warning */}
+        {renderNetworkWarning()}
   
-      <TaskHeader
-        date={date}
-        totalTasks={taskList.length}
-        completedTasks={taskList.filter((t) => t.completed).length}
-      />
+        {/* Task Header */}
+        <TaskHeader
+          date={date}
+          totalTasks={taskList.length}
+          completedTasks={taskList.filter((t) => t.completed).length}
+        />
   
-      <View className="flex-1">
+        {/* Task List */}
         <FlatList
           className="px-4"
           data={taskList}
@@ -203,49 +210,32 @@ export default function TaskDetails({ route }) {
           )}
           ListEmptyComponent={<EmptyTaskList />}
           contentContainerStyle={{
-            paddingBottom: 120, // Increased to make room for input
+            paddingBottom: 120, // Leave room for input
           }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         />
-      </View>
   
-      {/* Keyboard-aware input container */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
-        style={{ 
-          position: 'absolute', 
-          bottom: 0, 
-          left: 0, 
-          right: 0, 
-          backgroundColor: 'white',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 3
-        }}
-      >
+        {/* Add Task Input */}
         <AddTaskInput
           value={newTaskText}
           onChangeText={setNewTaskText}
           onSubmit={handleAddTask}
         />
-      </KeyboardAvoidingView>
   
-      {/* Task details modal */}
-      <TaskDetailsModal
-        visible={isModalVisible}
-        task={selectedTask}
-        onClose={() => {
-          setIsModalVisible(false);
-          setSelectedTask(null);
-        }}
-        onToggle={handleToggle}
-        onDelete={handleDelete}
-        onDescriptionChange={handleDescriptionChange}
-      />
-    </View>
-  );
+        {/* Task Details Modal */}
+        <TaskDetailsModal
+          visible={isModalVisible}
+          task={selectedTask}
+          onClose={() => {
+            setIsModalVisible(false);
+            setSelectedTask(null);
+          }}
+          onToggle={handleToggle}
+          onDelete={handleDelete}
+          onDescriptionChange={handleDescriptionChange}
+        />
+      </View>
+    </KeyboardAvoidingView>
+  );  
 }
