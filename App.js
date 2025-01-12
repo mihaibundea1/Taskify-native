@@ -1,3 +1,4 @@
+// App.js
 import 'react-native-gesture-handler';
 import React from 'react';
 import { View, Text, Image } from 'react-native';
@@ -16,6 +17,7 @@ import VerificationScreen from './src/screens/VerificationScreen';
 import Settings from './src/screens/Settings';
 import { VITE_CLERK_PUBLISHABLE_KEY } from '@env';
 import { TaskProvider } from './src/context/TaskContext';
+import { ThemeProvider } from './src/context/ThemeContext'; // Importă ThemeProvider
 import { styled } from 'nativewind';
 
 const StyledView = styled(View);
@@ -153,31 +155,32 @@ export default function App() {
       publishableKey={VITE_CLERK_PUBLISHABLE_KEY}
       tokenCache={tokenCache}
     >
-      <TaskProvider>
-        <NavigationContainer>
-          <SignedIn>
-            <TabNavigator />
-          </SignedIn>
-          <SignedOut>
-            <Stack.Navigator
-              screenOptions={{
-                headerStyle: {
-                  backgroundColor: '#4F46E5',
-                },
-                headerTintColor: '#fff',
-                headerTitleStyle: {
-                  fontWeight: 'bold',
-                },
-              }}
-            >
-              <Stack.Screen name="Login" component={Login} />
-              <Stack.Screen name="Register" component={Register} />
-              <Stack.Screen name="VerifyCode" component={VerificationScreen} />
-
-            </Stack.Navigator>
-          </SignedOut>
-        </NavigationContainer>
-      </TaskProvider>
+      <ThemeProvider>  {/* Împachetează aplicația cu ThemeProvider */}
+        <TaskProvider>
+          <NavigationContainer>
+            <SignedIn>
+              <TabNavigator />
+            </SignedIn>
+            <SignedOut>
+              <Stack.Navigator
+                screenOptions={{
+                  headerStyle: {
+                    backgroundColor: '#4F46E5',
+                  },
+                  headerTintColor: '#fff',
+                  headerTitleStyle: {
+                    fontWeight: 'bold',
+                  },
+                }}
+              >
+                <Stack.Screen name="Login" component={Login} />
+                <Stack.Screen name="Register" component={Register} />
+                <Stack.Screen name="VerifyCode" component={VerificationScreen} />
+              </Stack.Navigator>
+            </SignedOut>
+          </NavigationContainer>
+        </TaskProvider>
+      </ThemeProvider>
     </ClerkProvider>
   );
 }

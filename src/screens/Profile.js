@@ -1,11 +1,12 @@
 // src/screens/Profile.js
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import { View, Text, Image, TextInput, TouchableOpacity, ScrollView, Alert, Platform, StatusBar, SafeAreaView } from 'react-native';
 import { styled } from 'nativewind';
 import { useUser } from '@clerk/clerk-expo';
 import { Pencil, Phone, Mail, User as UserIcon, Save, X, Camera, Settings } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
+import { useTheme } from '../context/ThemeContext'; // Import the theme context
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -14,12 +15,12 @@ const StyledInput = styled(TextInput);
 const StyledTouchable = styled(TouchableOpacity);
 const StyledSafeAreaView = styled(SafeAreaView);
 
-const ProfileField = ({ label, value, icon, onEdit, isEditing, onChangeText, editable = true }) => (
-  <StyledView className="w-full bg-white rounded-xl p-4 mb-3 shadow-sm">
+const ProfileField = ({ label, value, icon, onEdit, isEditing, onChangeText, editable = true, isDarkMode }) => (
+  <StyledView className={`w-full rounded-xl p-4 mb-3 shadow-sm ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}>
     <StyledView className="flex-row justify-between items-center">
       <StyledView className="flex-row items-center">
         {icon}
-        <StyledText className="text-gray-600 ml-2 font-medium">{label}</StyledText>
+        <StyledText className={`text-${isDarkMode ? 'white' : 'gray-600'} ml-2 font-medium`}>{label}</StyledText>
       </StyledView>
       {editable && (
         <TouchableOpacity onPress={onEdit}>
@@ -35,7 +36,7 @@ const ProfileField = ({ label, value, icon, onEdit, isEditing, onChangeText, edi
         autoFocus
       />
     ) : (
-      <StyledText className="mt-2 text-gray-800 text-base">
+      <StyledText className={`mt-2 ${isDarkMode ? 'text-white' : 'text-gray-800'} text-base`}>
         {value || 'Not set'}
       </StyledText>
     )}
@@ -45,6 +46,7 @@ const ProfileField = ({ label, value, icon, onEdit, isEditing, onChangeText, edi
 const Profile = () => {
   const { user } = useUser();
   const navigation = useNavigation();
+  const { isDarkMode } = useTheme(); // Use theme context
   const [isEditing, setIsEditing] = useState({
     firstName: false,
     lastName: false,
@@ -56,22 +58,22 @@ const Profile = () => {
     phone: user?.phoneNumbers?.[0]?.phoneNumber || ''
   });
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <StyledTouchable 
           onPress={() => navigation.navigate('Settings')}
           className="mr-4"
         >
-          <Settings size={24} color="#ffffff" />
+          <Settings size={24} color={isDarkMode ? 'white' : '#000000'} />
         </StyledTouchable>
       ),
       headerShown: true,
       headerTransparent: true,
-      headerTintColor: '#fff',
+      headerTintColor: isDarkMode ? '#fff' : '#000',
       headerTitle: '',
     });
-  }, [navigation]);
+  }, [navigation, isDarkMode]);
 
   const handlePickImage = async () => {
     try {
@@ -130,14 +132,14 @@ const Profile = () => {
   };
 
   return (
-    <StyledSafeAreaView className="flex-1 bg-white">
+    <StyledSafeAreaView className={`flex-1 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
       <StatusBar
-        barStyle="dark-content"
-        backgroundColor="#ffffff"
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={isDarkMode ? '#1F2937' : '#ffffff'}
         translucent={Platform.OS === 'android'}
       />
-      <ScrollView className="flex-1 bg-gray-50">
-        <StyledView className="items-center pb-6 bg-indigo-600 shadow-lg" 
+      <ScrollView className="flex-1">
+        <StyledView className={`items-center pb-6 ${isDarkMode ? 'bg-indigo-800' : 'bg-indigo-600'} shadow-lg`} 
           style={{ 
             paddingTop: Platform.OS === 'ios' ? 20 : StatusBar.currentHeight + 20 
           }}>
@@ -153,16 +155,16 @@ const Profile = () => {
               <Camera size={16} color="#3b82f6" />
             </StyledTouchable>
           </StyledView>
-          <StyledText className="text-xl font-bold mt-4 text-white">
+          <StyledText className={`text-xl font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-white'}`}>
             {user?.fullName}
           </StyledText>
-          <StyledText className="text-blue-100 mt-1">
+          <StyledText className={`${isDarkMode ? 'text-blue-100' : 'text-blue-500'} mt-1`}>
             {user?.primaryEmailAddress?.emailAddress}
           </StyledText>
         </StyledView>
 
         <StyledView className="px-4 pt-6">
-          <StyledText className="text-lg font-semibold mb-4 text-gray-800 px-1">
+          <StyledText className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'} px-1`}>
             Personal Information
           </StyledText>
 
@@ -172,7 +174,8 @@ const Profile = () => {
             icon={<UserIcon size={20} color="#3b82f6" />}
             isEditing={isEditing.firstName}
             onEdit={() => toggleEdit('firstName')}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, firstName: text }))}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, firstName: text }))} 
+            isDarkMode={isDarkMode}
           />
 
           <ProfileField
@@ -181,7 +184,8 @@ const Profile = () => {
             icon={<UserIcon size={20} color="#3b82f6" />}
             isEditing={isEditing.lastName}
             onEdit={() => toggleEdit('lastName')}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, lastName: text }))}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, lastName: text }))} 
+            isDarkMode={isDarkMode}
           />
 
           <ProfileField
@@ -189,6 +193,7 @@ const Profile = () => {
             value={user?.primaryEmailAddress?.emailAddress}
             icon={<Mail size={20} color="#3b82f6" />}
             editable={false}
+            isDarkMode={isDarkMode}
           />
 
           <ProfileField
@@ -197,7 +202,8 @@ const Profile = () => {
             icon={<Phone size={20} color="#3b82f6" />}
             isEditing={isEditing.phone}
             onEdit={() => toggleEdit('phone')}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, phone: text }))}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, phone: text }))} 
+            isDarkMode={isDarkMode}
           />
 
           {Object.values(isEditing).some(Boolean) && (
@@ -215,7 +221,7 @@ const Profile = () => {
               </StyledTouchable>
               
               <StyledTouchable 
-                className="bg-blue-500 px-5 py-3 rounded-xl flex-row items-center"
+                className={`bg-${isDarkMode ? 'blue-600' : 'blue-500'} px-5 py-3 rounded-xl flex-row items-center`}
                 onPress={handleUpdate}
               >
                 <Save size={16} color="white" />

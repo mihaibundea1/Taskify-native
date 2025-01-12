@@ -1,18 +1,8 @@
-// Calendar.js
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { 
-  format, 
-  startOfMonth, 
-  endOfMonth, 
-  eachDayOfInterval, 
-  isSameMonth, 
-  isSameDay, 
-  isToday, 
-  startOfWeek, 
-  endOfWeek 
-} from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, startOfWeek, endOfWeek } from 'date-fns';
+import { useTheme } from '../context/ThemeContext'; // Importă contextul de temă
 
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -24,6 +14,7 @@ export default function Calendar({
   onPrevMonth, 
   onNextMonth 
 }) {
+  const { isDarkMode } = useTheme(); // Obține tema din context
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
   const calendarStart = startOfWeek(monthStart);
@@ -36,24 +27,24 @@ export default function Calendar({
   };
 
   return (
-    <View className="bg-white rounded-xl shadow-sm p-4">
+    <View className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-sm p-4`}>
       <View className="flex-row items-center justify-between mb-4">
-        <Text className="text-xl font-semibold text-gray-900">
+        <Text className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           {format(currentMonth, 'MMMM yyyy')}
         </Text>
         
         <View className="flex-row space-x-2">
           <TouchableOpacity
             onPress={onPrevMonth}
-            className="p-2 bg-gray-100 rounded-lg"
+            className={`p-2 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-lg`}
           >
-            <ChevronLeft size={20} color="#666" />
+            <ChevronLeft size={20} color={isDarkMode ? '#d1d5db' : '#666'} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onNextMonth}
-            className="p-2 bg-gray-100 rounded-lg"
+            className={`p-2 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-lg`}
           >
-            <ChevronRight size={20} color="#666" />
+            <ChevronRight size={20} color={isDarkMode ? '#d1d5db' : '#666'} />
           </TouchableOpacity>
         </View>
       </View>
@@ -61,7 +52,7 @@ export default function Calendar({
       <View className="flex-row mb-2">
         {WEEKDAYS.map((day) => (
           <View key={day} className="flex-1 items-center">
-            <Text className="text-sm font-medium text-gray-500">
+            <Text className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
               {day}
             </Text>
           </View>
@@ -80,13 +71,13 @@ export default function Calendar({
               key={day.toString()}
               onPress={() => onDateSelect(day)}
               className={`w-${100/7}% aspect-square items-center justify-center
-                ${!isCurrentMonth ? 'opacity-30' : ''}
-                ${isSelected ? 'bg-blue-100' : ''}
+                ${!isCurrentMonth ? 'opacity-30' : ''} 
+                ${isSelected ? (isDarkMode ? 'bg-blue-600' : 'bg-blue-100') : ''} 
                 ${isCurrentDay ? 'border border-blue-400' : ''}`}
             >
               <View className="relative">
                 <Text className={`text-center
-                  ${isSelected ? 'text-blue-600 font-medium' : 'text-gray-900'}
+                  ${isSelected ? 'text-white font-medium' : (isDarkMode ? 'text-gray-300' : 'text-gray-900')}
                   ${isCurrentDay ? 'font-bold' : ''}`}
                 >
                   {format(day, 'd')}

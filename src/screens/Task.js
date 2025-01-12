@@ -9,10 +9,12 @@ import CustomCalendar from '../components/TaskComponents/CustomCalendar';
 import TaskList from '../components/TaskComponents/TaskList';
 import FloatingButton from '../components/TaskComponents/FloatingButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../context/ThemeContext'; // Importă contextul de temă
 
 export default function Task() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const { isDarkMode } = useTheme(); // Obține tema din context
 
   const {
     selectedDate,
@@ -103,8 +105,8 @@ export default function Task() {
   }, [getMarkedDates, selectedDate]);
 
   return (
-    <View className="flex-1 bg-gray-50">
-      <View className="bg-gray-50 z-10 shadow-sm">
+    <View className={`flex-1 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
+      <View className={`bg-gray-50 z-10 shadow-sm`}>
         <Header />
         <SearchBar
           value={searchQuery}
@@ -136,7 +138,7 @@ export default function Task() {
           )}
         >
           <View className="mx-4 my-4">
-            <View className="bg-white rounded-xl shadow-sm">
+            <View className={`bg-white ${isDarkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl shadow-sm`}>
               <CustomCalendar
                 selectedDate={selectedDate}
                 onDayPress={handleDayPress}
