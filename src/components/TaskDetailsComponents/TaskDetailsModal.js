@@ -1,4 +1,3 @@
-// components/TaskDetailsComponents/TaskDetailsModal.js
 import React, { useState, useEffect } from 'react';
 import { 
     View, 
@@ -11,6 +10,7 @@ import {
     TouchableWithoutFeedback
 } from 'react-native';
 import { Trash2, Check, X, Calendar, AlignLeft } from 'lucide-react-native';
+import { useTheme } from '../../context/ThemeContext'; // Importă contextul de temă
 
 export function TaskDetailsModal({
     visible,
@@ -62,6 +62,8 @@ export function TaskDetailsModal({
         Keyboard.dismiss();
     };
 
+    const { isDarkMode } = useTheme(); // Folosește contextul de temă
+
     if (!task) return null;
 
     return (
@@ -72,13 +74,13 @@ export function TaskDetailsModal({
             onRequestClose={handleClose}
         >
             <TouchableWithoutFeedback onPress={dismissKeyboard}>
-                <View className="flex-1 bg-black/50">
-                    <View className="flex-1 bg-white mt-24 rounded-t-3xl">
+                <View className={`flex-1 ${isDarkMode ? 'bg-black/50' : 'bg-black/50'}`}>
+                    <View className={`flex-1 mt-24 rounded-t-3xl ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
                         {/* Header */}
-                        <View className="flex-row justify-between items-center p-6 border-b border-gray-100">
+                        <View className={`flex-row justify-between items-center p-6 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-100'}`}>
                             <View className="flex-1">
-                                <Text className="text-2xl font-bold text-gray-900">Task Details</Text>
-                                <Text className="text-gray-500 text-sm mt-1">
+                                <Text className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Task Details</Text>
+                                <Text className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                                     Created {new Date(task.createdAt).toLocaleDateString()}
                                 </Text>
                             </View>
@@ -86,7 +88,7 @@ export function TaskDetailsModal({
                                 onPress={handleClose}
                                 className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
                             >
-                                <X size={20} color="#6B7280" />
+                                <X size={20} color={isDarkMode ? '#F3F4F6' : '#6B7280'} />
                             </TouchableOpacity>
                         </View>
 
@@ -96,7 +98,7 @@ export function TaskDetailsModal({
                             keyboardDismissMode="on-drag"
                         >
                             {/* Task Title */}
-                            <View className="flex-row items-center py-6 border-b border-gray-100">
+                            <View className={`flex-row items-center py-6 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-100'}`}>
                                 <TouchableOpacity
                                     onPress={handleToggle}
                                     activeOpacity={0.7}
@@ -105,9 +107,7 @@ export function TaskDetailsModal({
                                 >
                                     {isCompleted && <Check size={18} color="white" />}
                                 </TouchableOpacity>
-                                <Text className={`text-xl ${
-                                    isCompleted ? 'text-gray-400 line-through' : 'text-gray-800'
-                                }`}>
+                                <Text className={`text-xl ${isCompleted ? 'text-gray-400 line-through' : isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                                     {task.text}
                                 </Text>
                             </View>
@@ -115,17 +115,17 @@ export function TaskDetailsModal({
                             {/* Description Section */}
                             <View className="py-6 space-y-4">
                                 <View className="flex-row items-center">
-                                    <AlignLeft size={20} color="#6B7280" />
-                                    <Text className="text-gray-800 font-medium text-lg ml-2">
+                                    <AlignLeft size={20} color={isDarkMode ? '#F3F4F6' : '#6B7280'} />
+                                    <Text className={`text-lg ml-2 ${isDarkMode ? 'text-white' : 'text-gray-800'} font-medium`}>
                                         Description
                                     </Text>
                                 </View>
-                                <View className="bg-gray-50 rounded-xl p-4">
+                                <View className={`bg-gray-50 rounded-xl p-4 ${isDarkMode ? 'bg-gray-700' : ''}`}>
                                     <TextInput
-                                        className="text-gray-700 text-base min-h-[100px]"
+                                        className={`text-base min-h-[100px] ${isDarkMode ? 'text-white' : 'text-gray-700'}`}
                                         multiline
                                         placeholder="Add details about your task..."
-                                        placeholderTextColor="#9CA3AF"
+                                        placeholderTextColor={isDarkMode ? '#9CA3AF' : '#9CA3AF'}
                                         value={localDescription}
                                         onChangeText={setLocalDescription}
                                         textAlignVertical="top"
@@ -144,7 +144,7 @@ export function TaskDetailsModal({
                             <TouchableOpacity
                                 onPress={() => onDelete(task.id)}
                                 activeOpacity={0.7}
-                                className="bg-red-50 p-4 rounded-xl flex-row items-center justify-center my-6"
+                                className={`bg-red-50 p-4 rounded-xl flex-row items-center justify-center my-6 ${isDarkMode ? 'bg-red-800' : ''}`}
                             >
                                 <Trash2 size={20} color="#EF4444" className="mr-2" />
                                 <Text className="text-red-500 font-medium">Delete Task</Text>

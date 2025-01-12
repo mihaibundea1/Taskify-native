@@ -1,13 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import {
-  View,
-  FlatList,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
-  ToastAndroid,
-} from 'react-native';
+import { View, FlatList, Alert, KeyboardAvoidingView, Platform, Keyboard, ToastAndroid, Text } from 'react-native';
 import { useTask } from '../context/TaskContext';
 import { TaskHeader } from '../components/TaskDetailsComponents/TaskHeader';
 import { TaskItem } from '../components/TaskDetailsComponents/TaskItem';
@@ -15,10 +7,11 @@ import { EmptyTaskList } from '../components/TaskDetailsComponents/EmptyTaskList
 import { AddTaskInput } from '../components/TaskDetailsComponents/AddTaskInput';
 import { TaskDetailsModal } from '../components/TaskDetailsComponents/TaskDetailsModal';
 import NetInfo from "@react-native-community/netinfo";
+import { useTheme } from '../context/ThemeContext'; // Import theme context
 
 export default function TaskDetails({ route }) {
   const { date } = route.params;
-  const {
+  const { 
     addTask: contextAddTask,
     toggleTask: contextToggleTask,
     updateTaskDescription: contextUpdateDescription,
@@ -28,7 +21,8 @@ export default function TaskDetails({ route }) {
     isOnline,
     syncError,
   } = useTask();
-
+  
+  const { isDarkMode } = useTheme(); // Retrieve active theme
   const [newTaskText, setNewTaskText] = useState('');
   const [selectedTask, setSelectedTask] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -43,7 +37,6 @@ export default function TaskDetails({ route }) {
     const unsubscribe = NetInfo.addEventListener(state => {
       setNetworkStatus(state.isConnected);
       
-      // Optional: Show network status toast
       if (!state.isConnected) {
         ToastAndroid.show('No internet connection. Changes will sync later.', ToastAndroid.SHORT);
       }
@@ -54,7 +47,7 @@ export default function TaskDetails({ route }) {
     };
   }, []);
 
-  // Use effect to listen to keyboard visibility
+  // Handle keyboard visibility
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
@@ -75,7 +68,7 @@ export default function TaskDetails({ route }) {
     };
   }, []); 
 
-  // Handling sync errors
+  // Handle sync errors
   useEffect(() => {
     if (syncError) {
       Alert.alert(
@@ -86,66 +79,46 @@ export default function TaskDetails({ route }) {
     }
   }, [syncError]);
 
-  const handleAddTask = () => {
+  // Add task handler
+  const handleAddTask = useCallback(() => {
     if (newTaskText.trim()) {
-      // Check if user is logged in
       if (!userId) {
-        Alert.alert(
-          'Login Required', 
-          'Please log in to save tasks across devices.',
-          [{ text: 'OK' }]
-        );
+        Alert.alert('Login Required', 'Please log in to save tasks across devices.', [{ text: 'OK' }]);
         return;
       }
 
-      // Check network status if online mode is important
       if (!networkStatus) {
         ToastAndroid.show('No internet. Task will sync when connection is restored.', ToastAndroid.SHORT);
       }
 
-      // Add task with context method
       contextAddTask(date, newTaskText);
       setNewTaskText('');
       Keyboard.dismiss();
     }
-  };
+  }, [newTaskText, networkStatus, userId, contextAddTask, date]);
 
-  const handleToggle = (taskId) => {
-    // Check if user is logged in
+  // Toggle task completion
+  const handleToggle = useCallback((taskId) => {
     if (!userId) {
-      Alert.alert(
-        'Login Required', 
-        'Please log in to save tasks across devices.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Login Required', 'Please log in to save tasks across devices.', [{ text: 'OK' }]);
       return;
     }
-
     contextToggleTask(date, taskId);
-  };
+  }, [userId, contextToggleTask, date]);
 
-  const handleDescriptionChange = (taskId, description) => {
-    // Check if user is logged in
+  // Update task description
+  const handleDescriptionChange = useCallback((taskId, description) => {
     if (!userId) {
-      Alert.alert(
-        'Login Required', 
-        'Please log in to save tasks across devices.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Login Required', 'Please log in to save tasks across devices.', [{ text: 'OK' }]);
       return;
     }
-
     contextUpdateDescription(date, taskId, description);
-  };
+  }, [userId, contextUpdateDescription, date]);
 
-  const handleDelete = (taskId) => {
-    // Check if user is logged in
+  // Delete task
+  const handleDelete = useCallback((taskId) => {
     if (!userId) {
-      Alert.alert(
-        'Login Required', 
-        'Please log in to save tasks across devices.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Login Required', 'Please log in to save tasks across devices.', [{ text: 'OK' }]);
       return;
     }
 
@@ -161,14 +134,14 @@ export default function TaskDetails({ route }) {
         style: 'destructive',
       },
     ]);
-  };
+  }, [userId, contextDeleteTask, date]);
 
   // Render network status warning
   const renderNetworkWarning = () => {
     if (!networkStatus) {
       return (
         <View className="bg-yellow-100 p-2 items-center">
-          <Text className="text-yellow-800">No internet connection. Changes will sync later.</Text>
+          <Text className={`text-${isDarkMode ? 'yellow-300' : 'yellow-800'}`}>No internet connection. Changes will sync later.</Text>
         </View>
       );
     }
@@ -178,22 +151,18 @@ export default function TaskDetails({ route }) {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 70} // Adjust this offset as per your header height
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 70}
       style={{ flex: 1 }}
     >
-      {/* Main Container */}
-      <View className="flex-1 bg-gray-50">
-        {/* Network Status Warning */}
+      <View className={`flex-1 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
         {renderNetworkWarning()}
-  
-        {/* Task Header */}
+
         <TaskHeader
           date={date}
           totalTasks={taskList.length}
           completedTasks={taskList.filter((t) => t.completed).length}
         />
-  
-        {/* Task List */}
+
         <FlatList
           className="px-4"
           data={taskList}
@@ -209,21 +178,17 @@ export default function TaskDetails({ route }) {
             />
           )}
           ListEmptyComponent={<EmptyTaskList />}
-          contentContainerStyle={{
-            paddingBottom: 120, // Leave room for input
-          }}
+          contentContainerStyle={{ paddingBottom: 120 }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         />
-  
-        {/* Add Task Input */}
+
         <AddTaskInput
           value={newTaskText}
           onChangeText={setNewTaskText}
           onSubmit={handleAddTask}
         />
-  
-        {/* Task Details Modal */}
+
         <TaskDetailsModal
           visible={isModalVisible}
           task={selectedTask}
@@ -237,5 +202,5 @@ export default function TaskDetails({ route }) {
         />
       </View>
     </KeyboardAvoidingView>
-  );  
+  );
 }

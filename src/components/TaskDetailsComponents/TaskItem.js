@@ -1,14 +1,17 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Check, ChevronRight } from 'lucide-react-native';
+import { useTheme } from '../../context/ThemeContext'; // Importă contextul de temă
 
 export function TaskItem({ task, onToggle, onPress }) {
+  const { isDarkMode } = useTheme(); // Folosește contextul de temă
+
   return (
     <TouchableOpacity 
       onPress={onPress}
-      className="flex-row items-center bg-white my-2 p-4 rounded-xl border border-gray-100"
+      className={`flex-row items-center my-2 p-4 rounded-xl border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}
       style={{
-        shadowColor: '#6366f1',
+        shadowColor: isDarkMode ? '#6366f1' : '#000', // Modifică culoarea umbrei în funcție de tema activă
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 4,
@@ -27,19 +30,17 @@ export function TaskItem({ task, onToggle, onPress }) {
       </TouchableOpacity>
       
       <View className="flex-1">
-        <Text className={`text-base font-medium ${
-          task.completed ? 'text-gray-400 line-through' : 'text-gray-800'
-        }`}>
+        <Text className={`text-base font-medium ${task.completed ? 'line-through' : ''} ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
           {task.text}
         </Text>
         {task.description && (
-          <Text className="text-gray-400 text-sm mt-1" numberOfLines={1}>
+          <Text className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} numberOfLines={1}>
             {task.description}
           </Text>
         )}
       </View>
       
-      <ChevronRight size={20} color="#9ca3af" />
+      <ChevronRight size={20} color={isDarkMode ? '#9CA3AF' : '#6B7280'} />
     </TouchableOpacity>
   );
 }

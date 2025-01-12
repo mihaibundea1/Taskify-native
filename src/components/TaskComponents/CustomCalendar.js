@@ -1,20 +1,21 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { useTheme } from '../../context/ThemeContext'; // Importă contextul de temă
 
-const calendarTheme = {
-    backgroundColor: '#ffffff',
-    calendarBackground: '#ffffff',
-    textSectionTitleColor: '#64748b',
+const calendarTheme = (isDarkMode) => ({
+    backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
+    calendarBackground: isDarkMode ? '#1e293b' : '#ffffff',
+    textSectionTitleColor: isDarkMode ? '#cbd5e1' : '#64748b',
     selectedDayBackgroundColor: '#6366f1',
     selectedDayTextColor: '#ffffff',
     todayTextColor: '#6366f1',
-    dayTextColor: '#1e293b',
+    dayTextColor: isDarkMode ? '#f3f4f6' : '#1e293b',
     textDisabledColor: '#cbd5e1',
     dotColor: '#6366f1',
-    monthTextColor: '#1e293b',
+    monthTextColor: isDarkMode ? '#f3f4f6' : '#1e293b',
     textMonthFontWeight: 'bold',
     arrowColor: '#6366f1',
     'stylesheet.calendar.header': {
@@ -41,11 +42,10 @@ const calendarTheme = {
             borderColor: '#6366f1',
         },
     },
-};
-
-// In the CustomCalendar component, update how you pass the `current` prop:
+});
 
 export default function CustomCalendar({ selectedDate, onDayPress, markedDates, maxHeight }) {
+    const { isDarkMode } = useTheme(); // Folosește contextul de temă
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [calendarHeight] = useState(new Animated.Value(hp(50)));
     const [isExpanded, setIsExpanded] = useState(true);
@@ -102,9 +102,14 @@ export default function CustomCalendar({ selectedDate, onDayPress, markedDates, 
         }
     }, [selectedDate, onDayPress]); // Avoid unnecessary state updates
 
+    useEffect(() => {
+        // Ensure that calendar gets updated when the theme changes
+        setCalendarKey(prev => prev + 1);
+    }, [isDarkMode]);
+
     return (
         <Animated.View className="px-4" style={{ height: calendarHeight, overflow: 'hidden' }}>
-            <View className="bg-white rounded-2xl shadow-md overflow-hidden">
+            <View className={`rounded-2xl shadow-md overflow-hidden ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <View
                     className="flex-row items-center justify-between border-b border-gray-100"
                     style={{
@@ -116,8 +121,8 @@ export default function CustomCalendar({ selectedDate, onDayPress, markedDates, 
                         onPress={toggleCalendarHeight}
                         className="flex-row items-center"
                     >
-                        <CalendarIcon size={wp(5)} color="#6366f1" />
-                        <Text className="text-gray-800 font-semibold"
+                        <CalendarIcon size={wp(5)} color={isDarkMode ? '#f3f4f6' : '#6366f1'} />
+                        <Text className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}
                             style={{
                                 marginLeft: wp(2),
                                 fontSize: wp(4.5)
@@ -138,10 +143,10 @@ export default function CustomCalendar({ selectedDate, onDayPress, markedDates, 
                             <Text className="text-indigo-500">Today</Text>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={goToPreviousMonth}>
-                            <ChevronLeft size={wp(6)} color="#6366f1" />
+                            <ChevronLeft size={wp(6)} color={isDarkMode ? '#cbd5e1' : '#6366f1'} />
                         </TouchableOpacity>
                         <TouchableOpacity onPress={goToNextMonth}>
-                            <ChevronRight size={wp(6)} color="#6366f1" />
+                            <ChevronRight size={wp(6)} color={isDarkMode ? '#cbd5e1' : '#6366f1'} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -151,7 +156,7 @@ export default function CustomCalendar({ selectedDate, onDayPress, markedDates, 
                     current={currentMonth.toISOString().split('T')[0]}  // Convert Date to YYYY-MM-DD string
                     onDayPress={handleDayPress}
                     markedDates={markedDates}
-                    theme={calendarTheme}
+                    theme={calendarTheme(isDarkMode)}
                     onMonthChange={handleMonthChange}
                 />
             </View>

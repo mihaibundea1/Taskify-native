@@ -8,13 +8,14 @@ import {
   KeyboardAvoidingView 
 } from 'react-native';
 import { Plus } from 'lucide-react-native';
+import { useTheme } from '../../context/ThemeContext'; // Importă contextul de temă
 
 export function AddTaskInput({ value, onChangeText, onSubmit }) {
   const inputRef = useRef(null);
+  const { isDarkMode } = useTheme(); // Accesează tema curentă
 
   // Focus input when component mounts or value changes
   useEffect(() => {
-    // Optionally focus input, but don't force it if keyboard is hidden
     if (value) {
       inputRef.current?.focus();
     }
@@ -23,7 +24,6 @@ export function AddTaskInput({ value, onChangeText, onSubmit }) {
   const handleSubmit = () => {
     if (value.trim()) {
       onSubmit();
-      // Optionally dismiss keyboard after submission
       Keyboard.dismiss();
     }
   };
@@ -37,16 +37,20 @@ export function AddTaskInput({ value, onChangeText, onSubmit }) {
         bottom: 0, 
         left: 0, 
         right: 0, 
-        backgroundColor: 'white' 
+        backgroundColor: isDarkMode ? '#333' : 'white' // Ajustează culoarea în funcție de temă
       }}
     >
-      <View className="px-4 py-3 bg-white border-t border-gray-100">
-        <View className="flex-row items-center bg-gray-50 rounded-xl px-4 py-2">
+      <View 
+        className={`px-4 py-3 border-t ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`} // Modifică fundalul în funcție de temă
+      >
+        <View 
+          className={`flex-row items-center ${isDarkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-xl px-4 py-2`}
+        >
           <TextInput
             ref={inputRef}
-            className="flex-1 text-base text-gray-800 min-h-[44px]"
+            className={`flex-1 text-base ${isDarkMode ? 'text-white' : 'text-gray-800'} min-h-[44px]`} // Modifică textul în funcție de temă
             placeholder="Add a new task..."
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={isDarkMode ? '#9CA3AF' : '#6B7280'}
             value={value}
             onChangeText={onChangeText}
             onSubmitEditing={handleSubmit}
