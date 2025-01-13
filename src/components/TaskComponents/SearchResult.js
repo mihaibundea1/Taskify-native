@@ -11,7 +11,7 @@ export function SearchResult({ results, onResultPress }) {
         return (
             <View className="flex-1 justify-center items-center" style={{ paddingVertical: hp(6) }}>
                 <View className="bg-gray-50 rounded-full" style={{ padding: wp(6) }}>
-                    <Search size={wp(12)} color="#6366f1" />
+                    <Search size={wp(12)} color="#007BFF" />
                 </View>
                 <Text className="text-gray-500 text-center" 
                     style={{ 
@@ -35,7 +35,7 @@ export function SearchResult({ results, onResultPress }) {
                         style={{
                             marginBottom: hp(1.5),
                             padding: wp(4),
-                            shadowColor: '#6366f1',
+                            shadowColor: '#007BFF',
                             shadowOffset: { width: 0, height: 2 },
                             shadowOpacity: 0.05,
                             shadowRadius: 4,

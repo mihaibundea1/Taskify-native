@@ -11,7 +11,7 @@ export function TaskItem({ task, onToggle, onPress }) {
       onPress={onPress}
       className={`flex-row items-center my-2 p-4 rounded-xl border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}`}
       style={{
-        shadowColor: isDarkMode ? '#6366f1' : '#000', // Modifică culoarea umbrei în funcție de tema activă
+        shadowColor: isDarkMode ? '#007BFF' : '#000', // Modifică culoarea umbrei în funcție de tema activă
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 4,

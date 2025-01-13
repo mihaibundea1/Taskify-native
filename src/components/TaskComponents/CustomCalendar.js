@@ -6,18 +6,18 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { useTheme } from '../../context/ThemeContext'; // Importă contextul de temă
 
 const calendarTheme = (isDarkMode) => ({
-    backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
-    calendarBackground: isDarkMode ? '#1e293b' : '#ffffff',
-    textSectionTitleColor: isDarkMode ? '#cbd5e1' : '#64748b',
-    selectedDayBackgroundColor: '#6366f1',
-    selectedDayTextColor: '#ffffff',
-    todayTextColor: '#6366f1',
-    dayTextColor: isDarkMode ? '#f3f4f6' : '#1e293b',
-    textDisabledColor: '#cbd5e1',
-    dotColor: '#6366f1',
-    monthTextColor: isDarkMode ? '#f3f4f6' : '#1e293b',
-    textMonthFontWeight: 'bold',
-    arrowColor: '#6366f1',
+    backgroundColor: isDarkMode ? '#102a43' : '#e3f2fd', // Fundal general
+    calendarBackground: isDarkMode ? '#102a43' : '#e3f2fd', // Fundal calendar
+    textSectionTitleColor: isDarkMode ? '#7ea5cc' : '#3b82f6', // Titluri de secțiuni
+    selectedDayBackgroundColor: '#2563eb', // Ziua selectată (albastru mai intens)
+    selectedDayTextColor: '#ffffff', // Text pe zi selectată
+    todayTextColor: '#1d4ed8', // Ziua curentă
+    dayTextColor: isDarkMode ? '#dbeafe' : '#1e40af', // Zilele obișnuite
+    textDisabledColor: '#93c5fd', // Zile dezactivate
+    dotColor: '#3b82f6', // Culoarea punctelor
+    monthTextColor: isDarkMode ? '#dbeafe' : '#1e3a8a', // Text lună
+    textMonthFontWeight: 'bold', // Text lună bold
+    arrowColor: '#3b82f6', // Culoare săgeți
     'stylesheet.calendar.header': {
         week: {
             marginTop: hp(0.6),
@@ -34,15 +34,16 @@ const calendarTheme = (isDarkMode) => ({
         },
         selected: {
             borderRadius: wp(5.5),
-            backgroundColor: '#6366f1',
+            backgroundColor: '#2563eb', // Fundal zi selectată
         },
         today: {
             borderRadius: wp(5.5),
             borderWidth: 1,
-            borderColor: '#6366f1',
+            borderColor: '#1d4ed8', // Contur ziua curentă
         },
     },
 });
+
 
 export default function CustomCalendar({ selectedDate, onDayPress, markedDates, maxHeight }) {
     const { isDarkMode } = useTheme(); // Folosește contextul de temă
@@ -121,7 +122,7 @@ export default function CustomCalendar({ selectedDate, onDayPress, markedDates, 
                         onPress={toggleCalendarHeight}
                         className="flex-row items-center"
                     >
-                        <CalendarIcon size={wp(5)} color={isDarkMode ? '#f3f4f6' : '#6366f1'} />
+                        <CalendarIcon size={wp(5)} color={isDarkMode ? '#f3f4f6' : '#007BFF'} />
                         <Text className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}
                             style={{
                                 marginLeft: wp(2),
@@ -143,10 +144,10 @@ export default function CustomCalendar({ selectedDate, onDayPress, markedDates, 
                             <Text className="text-indigo-500">Today</Text>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={goToPreviousMonth}>
-                            <ChevronLeft size={wp(6)} color={isDarkMode ? '#cbd5e1' : '#6366f1'} />
+                            <ChevronLeft size={wp(6)} color={isDarkMode ? '#cbd5e1' : '#007BFF'} />
                         </TouchableOpacity>
                         <TouchableOpacity onPress={goToNextMonth}>
-                            <ChevronRight size={wp(6)} color={isDarkMode ? '#cbd5e1' : '#6366f1'} />
+                            <ChevronRight size={wp(6)} color={isDarkMode ? '#cbd5e1' : '#007BFF'} />
                         </TouchableOpacity>
                     </View>
                 </View>

@@ -4,7 +4,6 @@ import { useTask } from '../context/TaskContext';
 import { TaskHeader } from '../components/TaskDetailsComponents/TaskHeader';
 import { TaskItem } from '../components/TaskDetailsComponents/TaskItem';
 import { EmptyTaskList } from '../components/TaskDetailsComponents/EmptyTaskList';
-import { AddTaskInput } from '../components/TaskDetailsComponents/AddTaskInput';
 import { TaskDetailsModal } from '../components/TaskDetailsComponents/TaskDetailsModal';
 import NetInfo from "@react-native-community/netinfo";
 import { useTheme } from '../context/ThemeContext'; // Import theme context
@@ -20,6 +19,7 @@ export default function TaskDetails({ route }) {
     updateTaskDescription: contextUpdateDescription,
     deleteTask: contextDeleteTask,
     getTasksForDate,
+    updateTask,
     userId,
     isOnline,
     syncError,
@@ -148,7 +148,7 @@ export default function TaskDetails({ route }) {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 70}
       style={{ flex: 1 }}
     >
-      <View style={{ flex: 1, backgroundColor: isDarkMode ? '#2D2D2D' : '#FAFAFA' }}>
+      <View style={{ flex: 1, backgroundColor: isDarkMode ? '#1E2937' : '#FAFAFA' }}>
         {renderNetworkWarning()}
 
         <TaskHeader
@@ -192,6 +192,7 @@ export default function TaskDetails({ route }) {
           onToggle={handleToggle}
           onDelete={handleDelete}
           onDescriptionChange={handleDescriptionChange}
+          onUpdateTask={updateTask} // pasăm noua funcție
         />
       </View>
       <View className="absolute bottom-6 right-4">

@@ -9,7 +9,7 @@ export function TaskHeader({ date, totalTasks, completedTasks }) {
   return (
     <View className={`px-6 pt-12 pb-6 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-100'}`}>
       <View className="flex-row items-center justify-between mb-4">
-        <CalendarIcon size={24} color="#6366f1" />
+        <CalendarIcon size={24} color="#007BFF" />
         <Text className={`font-medium ${isDarkMode ? 'text-indigo-400' : 'text-indigo-500'}`}>
           {completedTasks}/{totalTasks} Complete
         </Text>

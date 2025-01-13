@@ -18,7 +18,7 @@ import Settings from './src/screens/Settings';
 import TaskForm from './src/screens/TaskForm';
 import { VITE_CLERK_PUBLISHABLE_KEY } from '@env';
 import { TaskProvider } from './src/context/TaskContext';
-import { ThemeProvider } from './src/context/ThemeContext'; // Importă ThemeProvider
+import { ThemeProvider, useTheme } from './src/context/ThemeContext'; // Importă ThemeProvider
 import { styled } from 'nativewind';
 
 const StyledView = styled(View);
@@ -28,6 +28,8 @@ const StyledImage = styled(Image);
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 const ProfileStack = createStackNavigator();
+const { isDarkMode } = useTheme();
+
 
 import * as WebBrowser from 'expo-web-browser';
 
@@ -55,9 +57,9 @@ const TaskStack = () => (
   <Stack.Navigator
     screenOptions={{
       headerStyle: {
-        backgroundColor: '#4F46E5',
+        backgroundColor: isDarkMode ? '#1f2937' : '#007BFF', // Schimbă culoarea în funcție de temă
       },
-      headerTintColor: '#fff',
+      headerTintColor: isDarkMode ? '#fff' : '#000', // Schimbă culoarea textului
       headerTitleStyle: {
         fontWeight: 'bold',
       },
@@ -67,27 +69,27 @@ const TaskStack = () => (
       name="TaskList"
       component={Task}
       options={{
-        title: 'My Tasks'
+        title: 'My Tasks',
       }}
     />
     <Stack.Screen
       name="TaskDetails"
       component={TaskDetails}
       options={{
-        title: 'Task Details'
+        title: 'Task Details',
       }}
     />
-    <Tab.Screen 
-        name="TaskForm" 
-        component={TaskForm}
-        // options={{
-        //   title: 'New Task',
-        //   headerStyle: {
-        //     backgroundColor: isDarkMode ? '#1f2937' : '#fff',
-        //   },
-        //   headerTintColor: isDarkMode ? '#fff' : '#000',
-        // }}
-      />
+    <Stack.Screen
+      name="TaskForm"
+      component={TaskForm}
+      options={{
+        title: 'New Task',
+        headerStyle: {
+          backgroundColor: isDarkMode ? '#1f2937' : '#fff', // Dinamic în funcție de temă
+        },
+        headerTintColor: isDarkMode ? '#fff' : '#000',
+      }}
+    />
   </Stack.Navigator>
 );
 
@@ -109,7 +111,7 @@ const ProfileStackNavigator = () => (
         headerStyle: {
           backgroundColor: '#fff',
         },
-        headerTintColor: '#4B5563',
+        headerTintColor: '#007BFF',
         headerShadowVisible: false,
       }}
     />
@@ -117,17 +119,17 @@ const ProfileStackNavigator = () => (
 );
 
 // Tab Navigator
-const TabNavigator = () => (
+const TabNavigator = () => {
+  const { isDarkMode } = useTheme();
+
   <Tab.Navigator
     screenOptions={{
       tabBarStyle: {
-        backgroundColor: 'white',
-        borderTopWidth: 1,
-        borderTopColor: '#E5E7EB',
+        backgroundColor: isDarkMode ? '#1f2937' : '#fff', // Fundal dinamic
       },
-      tabBarActiveTintColor: '#4F46E5',
-      tabBarInactiveTintColor: '#6B7280',
-      headerShown: false,
+      tabBarActiveTintColor: isDarkMode ? '#4F46E5' : '#007BFF', // Culoare activă
+      tabBarInactiveTintColor: isDarkMode ? '#9CA3AF' : '#6B7280', // Culoare inactivă
+      headerShown: false, // Ascunde header-ul implicit
     }}
   >
     <Tab.Screen
@@ -135,13 +137,11 @@ const TabNavigator = () => (
       component={TaskStack}
       options={{
         tabBarLabel: ({ color }) => (
-          <StyledText className={`text-xs ${color === '#4F46E5' ? 'text-indigo-600' : 'text-gray-500'}`}>
+          <StyledText className={`text-xs ${isDarkMode ? 'text-gray-200' : 'text-gray-500'}`}>
             Tasks
           </StyledText>
         ),
-        tabBarIcon: ({ color, size }) => (
-          <ListTodo color={color} size={size} />
-        ),
+        tabBarIcon: ({ color, size }) => <ListTodo color={color} size={size} />,
       }}
     />
     <Tab.Screen
@@ -149,18 +149,16 @@ const TabNavigator = () => (
       component={ProfileStackNavigator}
       options={{
         tabBarLabel: ({ color }) => (
-          <StyledText className={`text-xs ${color === '#4F46E5' ? 'text-indigo-600' : 'text-gray-500'}`}>
+          <StyledText className={`text-xs ${isDarkMode ? 'text-gray-200' : 'text-gray-500'}`}>
             Profile
           </StyledText>
         ),
-        tabBarIcon: ({ color, size }) => (
-          <User color={color} size={size} />
-        ),
+        tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
       }}
     />
-    
   </Tab.Navigator>
-);
+};
+
 
 export default function App() {
   return (
@@ -189,7 +187,7 @@ export default function App() {
                 <Stack.Screen name="Login" component={Login} />
                 <Stack.Screen name="Register" component={Register} />
                 <Stack.Screen name="VerifyCode" component={VerificationScreen} />
-                
+
               </Stack.Navigator>
             </SignedOut>
           </NavigationContainer>

@@ -33,7 +33,7 @@ export default function Header() {
             fontSize: wp(4)
           }}>Organize your schedule</Text>
         </View>
-        <CalendarIcon size={wp(7)} color={isDarkMode ? '#6366f1' : '#6366f1'} />
+        <CalendarIcon size={wp(7)} color={isDarkMode ? '#007BFF' : '#007BFF'} />
       </View>
     </View>
   );

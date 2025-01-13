@@ -24,7 +24,7 @@ const ProfileField = ({ label, value, icon, onEdit, isEditing, onChangeText, edi
       </StyledView>
       {editable && (
         <TouchableOpacity onPress={onEdit}>
-          <Pencil size={16} color={isEditing ? "#3b82f6" : "#9CA3AF"} />
+          <Pencil size={16} color={isEditing ? "#007BFF" : "#9CA3AF"} />
         </TouchableOpacity>
       )}
     </StyledView>
@@ -139,7 +139,7 @@ const Profile = () => {
         translucent={Platform.OS === 'android'}
       />
       <ScrollView className="flex-1">
-        <StyledView className={`items-center pb-6 ${isDarkMode ? 'bg-indigo-800' : 'bg-indigo-600'} shadow-lg`} 
+        <StyledView className={`items-center pb-6 ${isDarkMode ? 'bg-blue-600' : 'bg-blue-600'} shadow-lg`} 
           style={{ 
             paddingTop: Platform.OS === 'ios' ? 20 : StatusBar.currentHeight + 20 
           }}>
@@ -158,7 +158,7 @@ const Profile = () => {
           <StyledText className={`text-xl font-bold mt-4 ${isDarkMode ? 'text-white' : 'text-white'}`}>
             {user?.fullName}
           </StyledText>
-          <StyledText className={`${isDarkMode ? 'text-blue-100' : 'text-blue-500'} mt-1`}>
+          <StyledText className={`${isDarkMode ? 'text-blue-100' : 'text-dark-500'} mt-1`}>
             {user?.primaryEmailAddress?.emailAddress}
           </StyledText>
         </StyledView>

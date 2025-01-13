@@ -14,13 +14,13 @@ export default function FloatingButton({ onPress }) {
       <TouchableOpacity
         onPress={onPress}
         style={{
-          backgroundColor: '#6366f1',
+          backgroundColor: '#007BFF',
           width: wp(14),
           height: wp(14),
           borderRadius: wp(7),
           alignItems: 'center',
           justifyContent: 'center',
-          shadowColor: '#6366f1',
+          shadowColor: '#007BFF',
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
           shadowRadius: 8,

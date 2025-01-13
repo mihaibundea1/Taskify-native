@@ -189,6 +189,49 @@ export function TaskProvider({ children }) {
         }
     };
 
+    const updateTask = async (taskId, updatedTaskData) => {
+        if (!userId) {
+            // Update local
+            const updatedTasks = { ...tasks };
+            Object.keys(updatedTasks).forEach(date => {
+                const taskIndex = updatedTasks[date].findIndex(t => t.id === taskId);
+                if (taskIndex !== -1) {
+                    updatedTasks[date][taskIndex] = {
+                        ...updatedTasks[date][taskIndex],
+                        ...updatedTaskData
+                    };
+                }
+            });
+            
+            setTasks(updatedTasks);
+            saveLocalTasks(updatedTasks);
+            return;
+        }
+    
+        try {
+            // Optimistic update
+            const updatedTasks = { ...tasks };
+            Object.keys(updatedTasks).forEach(date => {
+                const taskIndex = updatedTasks[date].findIndex(t => t.id === taskId);
+                if (taskIndex !== -1) {
+                    updatedTasks[date][taskIndex] = {
+                        ...updatedTasks[date][taskIndex],
+                        ...updatedTaskData
+                    };
+                }
+            });
+            
+            setTasks(updatedTasks);
+            saveLocalTasks(updatedTasks);
+    
+            // Update via service
+            await taskService.updateTask(userId, taskId, updatedTaskData);
+        } catch (error) {
+            console.error('Error updating task:', error);
+            Alert.alert('Update Task Error', 'Failed to update task');
+        }
+    };
+
     // Toggle task completion
     const toggleTask = async (date, taskId) => {
         if (!userId) {
@@ -316,7 +359,7 @@ export function TaskProvider({ children }) {
             if (tasks[date]?.length > 0) {
                 marked[date] = {
                     marked: true,
-                    dotColor: '#6366f1'
+                    dotColor: '#007BFF'
                 };
             }
         });

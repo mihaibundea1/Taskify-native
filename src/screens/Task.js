@@ -108,7 +108,7 @@ export default function Task() {
       [selectedDate]: {
         ...marked[selectedDate],
         selected: true,
-        selectedColor: '#6366f1',
+        selectedColor: '#007BFF',
       },
     };
   }, [getMarkedDates, selectedDate]);
@@ -142,18 +142,16 @@ export default function Task() {
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={handleRefresh}
-              tintColor="#6366f1"
+              tintColor="#007BFF"
             />
           )}
         >
           <View className="mx-4 my-4">
-            <View className={`bg-white ${isDarkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl shadow-sm`}>
               <CustomCalendar
                 selectedDate={selectedDate}
                 onDayPress={handleDayPress}
                 markedDates={markedDates}
               />
-            </View>
           </View>
 
           <View className="flex-1 mx-4 mt-2">

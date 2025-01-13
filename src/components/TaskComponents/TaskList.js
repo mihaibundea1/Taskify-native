@@ -16,7 +16,7 @@ export default function TaskList({ selectedDate }) {
         return (
             <View className="flex-1 justify-center items-center" style={{ paddingVertical: hp(6) }}>
                 <View className="bg-gray-50 rounded-full" style={{ padding: wp(6) }}>
-                    <CalendarIcon size={wp(4)} color="#6366f1" />
+                    <CalendarIcon size={wp(4)} color="#007BFF" />
                 </View>
                 <Text 
                     className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-center`} 
@@ -32,7 +32,7 @@ export default function TaskList({ selectedDate }) {
         return (
             <View className="flex-1 justify-center items-center" style={{ paddingVertical: hp(6) }}>
                 <View className="bg-gray-50 rounded-full" style={{ padding: wp(6) }}>
-                    <CalendarIcon size={wp(12)} color="#6366f1" />
+                    <CalendarIcon size={wp(12)} color="#007BFF" />
                 </View>
                 <Text 
                     className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-center`} 
@@ -74,7 +74,7 @@ export default function TaskList({ selectedDate }) {
                         borderRadius: wp(2),
                         borderWidth: 1,
                         borderColor: isDarkMode ? '#4a5568' : '#e5e7eb', // Culoarea graniței
-                        shadowColor: isDarkMode ? '#6366f1' : '#000000', // Umbra
+                        shadowColor: isDarkMode ? '#007BFF' : '#000000', // Umbra
                         shadowOffset: { width: 0, height: 2 },
                         shadowOpacity: 0.05,
                         shadowRadius: 4,
