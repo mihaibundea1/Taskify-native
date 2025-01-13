@@ -4,7 +4,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTask } from '../context/TaskContext';
 import Header from '../components/TaskComponents/Header';
 import { SearchBar } from '../components/TaskComponents/SearchBar';
-import { SearchResults } from '../components/TaskComponents/SearchResult';
+import { SearchResult } from '../components/TaskComponents/SearchResult';
 import CustomCalendar from '../components/TaskComponents/CustomCalendar';
 import TaskList from '../components/TaskComponents/TaskList';
 import FloatingButton from '../components/TaskComponents/FloatingButton';
@@ -25,7 +25,7 @@ export default function Task() {
   } = useTask();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchResult, setSearchResult] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Optimized refresh effect
@@ -51,19 +51,21 @@ export default function Task() {
 
   // Memoized search handler
   const handleSearch = useCallback((text) => {
+    if (text === undefined) return; // Previne procesarea dacă text este undefined
+    
     setSearchQuery(text);
-    if (text.trim()) {
-      const results = searchTasks(text);
-      setSearchResults(results);
+    if (text && text.trim()) {
+        const results = searchTasks(text);
+        setSearchResult(results || []); // Asigură-te că results nu este undefined
     } else {
-      setSearchResults([]);
+        setSearchResult([]);
     }
-  }, [searchTasks]);
+}, [searchTasks]);
 
   // Memoized search result press handler
   const handleSearchResultPress = useCallback((task) => {
     setSearchQuery('');
-    setSearchResults([]);
+    setSearchResult([]);
     setSelectedDate(task.date);
     navigation.navigate('TaskDetails', { date: task.date });
     
@@ -120,14 +122,14 @@ export default function Task() {
           onChangeText={handleSearch}
           onClear={() => {
             setSearchQuery('');
-            setSearchResults([]);
+            setSearchResult([]);
           }}
         />
       </View>
 
       {searchQuery ? (
-        <SearchResults
-          results={searchResults}
+        <SearchResult
+          results={searchResult}
           onResultPress={handleSearchResultPress}
           className="flex-1 mx-4"
         />

@@ -1,4 +1,3 @@
-// SearchBar.js
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView, Keyboard } from 'react-native';
 import { Search, X } from 'lucide-react-native';
@@ -6,33 +5,40 @@ import { format } from 'date-fns';
 
 export default function SearchBar({ tasks, onTaskSelect }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredTasks, setFilteredTasks] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');  // Starea pentru query-ul de căutare
+  const [filteredTasks, setFilteredTasks] = useState([]); // Starea pentru task-urile filtrate
 
+  // Folosim useEffect pentru a filtra task-urile pe măsură ce se schimbă searchQuery
   useEffect(() => {
+    console.log('Tasks:', tasks);  // Verifică ce conține tasks
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      const filtered = tasks.filter(task => 
-        task?.title?.toLowerCase().includes(query) ||
-        task?.description?.toLowerCase().includes(query) || false
-      );
+      const filtered = tasks.filter(task => {
+        console.log('Task:', task);  // Verifică fiecare task în parte
+        return (
+          (task?.title && task.title.toLowerCase().includes(query)) ||
+          (task?.description && task.description.toLowerCase().includes(query))
+        );
+      });
       setFilteredTasks(filtered);
     } else {
       setFilteredTasks([]);
     }
   }, [searchQuery, tasks]);
+  
 
+  // Funcția care se execută atunci când un task este selectat
   const handleTaskClick = (task) => {
-    onTaskSelect(task);
-    setIsOpen(false);
-    setSearchQuery('');
-    Keyboard.dismiss();
+    onTaskSelect(task);  // Apelează funcția de selecție a task-ului
+    setIsOpen(false);     // Închide modalul
+    setSearchQuery('');   // Resetează searchQuery
+    Keyboard.dismiss();   // Ascunde tastatura
   };
 
   return (
     <View>
       <TouchableOpacity
-        onPress={() => setIsOpen(true)}
+        onPress={() => setIsOpen(true)}  // Deschide modalul când se apasă pe SearchBar
         className="flex-row items-center bg-white border border-gray-200 rounded-lg p-3"
       >
         <Search size={20} color="#666" />
@@ -44,8 +50,8 @@ export default function SearchBar({ tasks, onTaskSelect }) {
         animationType="slide"
         transparent={true}
         onRequestClose={() => {
-          setIsOpen(false);
-          setSearchQuery('');
+          setIsOpen(false);  // Închide modalul când se apasă în afară
+          setSearchQuery(''); // Resetează searchQuery
         }}
       >
         <View className="flex-1 bg-black/50">
@@ -54,15 +60,15 @@ export default function SearchBar({ tasks, onTaskSelect }) {
               <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2">
                 <Search size={20} color="#666" />
                 <TextInput
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
+                  value={searchQuery}  // Valoarea câmpului de input
+                  onChangeText={setSearchQuery} // Actualizează searchQuery în timp real
                   placeholder="Search tasks..."
                   className="flex-1 ml-2 text-base"
                   autoFocus
                 />
                 {searchQuery ? (
                   <TouchableOpacity
-                    onPress={() => setSearchQuery('')}
+                    onPress={() => setSearchQuery('')} // Șterge textul când apesi pe "X"
                     className="p-1"
                   >
                     <X size={20} color="#666" />
@@ -75,7 +81,7 @@ export default function SearchBar({ tasks, onTaskSelect }) {
               {filteredTasks.map((task) => (
                 <TouchableOpacity
                   key={task.id}
-                  onPress={() => handleTaskClick(task)}
+                  onPress={() => handleTaskClick(task)} // Apelează funcția de selecție a task-ului
                   className="px-4 py-3 border-b border-gray-100 active:bg-gray-50"
                 >
                   <Text className="font-medium text-gray-900">
@@ -104,7 +110,7 @@ export default function SearchBar({ tasks, onTaskSelect }) {
             <TouchableOpacity
               onPress={() => {
                 setIsOpen(false);
-                setSearchQuery('');
+                setSearchQuery(''); // Resetează searchQuery când se închide modalul
               }}
               className="px-4 py-4 border-t border-gray-200"
             >

@@ -1,11 +1,12 @@
-// components/TaskComponents/SearchResults.js
+// components/TaskComponents/SearchResult.js
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Calendar as CalendarIcon, ChevronRight, Search } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
-export function SearchResults({ results, onResultPress }) {
+
+export function SearchResult({ results, onResultPress }) {
     const navigation = useNavigation();
 
     if (results.length === 0) {

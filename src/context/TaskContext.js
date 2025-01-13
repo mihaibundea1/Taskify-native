@@ -325,26 +325,49 @@ export function TaskProvider({ children }) {
 
     // Search tasks
     const searchTasks = (searchTerm) => {
-        if (!searchTerm.trim()) return [];
-
-        const searchResults = [];
-        const searchTermLower = searchTerm.toLowerCase();
-
+        // Verifică dacă searchTerm este definit și nu este null
+        if (!searchTerm || typeof searchTerm !== 'string') {
+            return [];
+        }
+    
+        const searchTermTrimmed = searchTerm.trim();
+        if (searchTermTrimmed === '') {
+            return [];
+        }
+    
+        const searchResult = [];
+        const searchTermLower = searchTermTrimmed.toLowerCase();
+    
+        // Verifică dacă tasks există și este un obiect
+        if (!tasks || typeof tasks !== 'object') {
+            return [];
+        }
+    
         Object.entries(tasks).forEach(([date, tasksForDate]) => {
+            // Verifică dacă tasksForDate este un array
+            if (!Array.isArray(tasksForDate)) {
+                return;
+            }
+    
             tasksForDate.forEach(task => {
+                if (!task) return; // Skip dacă task este null sau undefined
+    
+                const taskText = task.text || '';
+                const taskDescription = task.description || '';
+    
                 if (
-                    task.text.toLowerCase().includes(searchTermLower) ||
-                    (task.description && task.description.toLowerCase().includes(searchTermLower))
+                    taskText.toLowerCase().includes(searchTermLower) ||
+                    taskDescription.toLowerCase().includes(searchTermLower)
                 ) {
-                    searchResults.push({
+                    searchResult.push({
                         ...task,
                         date
                     });
                 }
             });
         });
-
-        return searchResults.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+        return searchResult.sort((a, b) => new Date(b.date) - new Date(a.date));
     };
 
     return (
