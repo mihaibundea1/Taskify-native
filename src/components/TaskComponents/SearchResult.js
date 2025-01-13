@@ -1,10 +1,8 @@
-// components/TaskComponents/SearchResult.js
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Calendar as CalendarIcon, ChevronRight, Search } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-
 
 export function SearchResult({ results, onResultPress }) {
     const navigation = useNavigation();
@@ -29,10 +27,10 @@ export function SearchResult({ results, onResultPress }) {
     return (
         <ScrollView className="flex-1">
             <View style={{ padding: wp(4) }}>
-                {results.map((result) => (
+                {results.map((task) => (
                     <TouchableOpacity
-                        key={result.id}
-                        onPress={() => onResultPress(result)}
+                        key={task.id}
+                        onPress={() => onResultPress(task)}
                         className="flex-row items-center bg-white rounded-xl shadow-sm border border-gray-100"
                         style={{
                             marginBottom: hp(1.5),
@@ -47,13 +45,21 @@ export function SearchResult({ results, onResultPress }) {
                         <View className="flex-1">
                             <Text className="text-gray-800" 
                                 style={{ 
-                                    fontSize: wp(4)
+                                    fontSize: wp(4),
+                                    fontWeight: 'bold'
                                 }}>
-                                {result.text}
+                                {task.title}
+                            </Text>
+                            <Text className="text-gray-600"
+                                style={{ 
+                                    fontSize: wp(3.8), 
+                                    marginTop: hp(0.5) 
+                                }}>
+                                {task.description}
                             </Text>
                             <View className="flex-row items-center" 
                                 style={{ 
-                                    marginTop: hp(1)
+                                    marginTop: hp(1) 
                                 }}>
                                 <CalendarIcon size={wp(4)} color="#6B7280" />
                                 <Text className="text-gray-500" 
@@ -61,11 +67,11 @@ export function SearchResult({ results, onResultPress }) {
                                         marginLeft: wp(2),
                                         fontSize: wp(3.5)
                                     }}>
-                                    {new Date(result.date).toLocaleDateString('en-US', {
+                                    {new Date(task.date).toLocaleDateString('en-US', {
                                         month: 'long',
                                         day: 'numeric',
                                         year: 'numeric'
-                                    })}
+                                    })} - {task.time}
                                 </Text>
                             </View>
                         </View>

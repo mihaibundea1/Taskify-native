@@ -352,11 +352,11 @@ export function TaskProvider({ children }) {
             tasksForDate.forEach(task => {
                 if (!task) return; // Skip dacă task este null sau undefined
     
-                const taskText = task.text || '';
+                const taskTitle = task.title || '';
                 const taskDescription = task.description || '';
     
                 if (
-                    taskText.toLowerCase().includes(searchTermLower) ||
+                    taskTitle.toLowerCase().includes(searchTermLower) ||
                     taskDescription.toLowerCase().includes(searchTermLower)
                 ) {
                     searchResult.push({
@@ -369,6 +369,7 @@ export function TaskProvider({ children }) {
     
         return searchResult.sort((a, b) => new Date(b.date) - new Date(a.date));
     };
+    
 
     return (
         <TaskContext.Provider value={{
