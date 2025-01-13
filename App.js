@@ -2,7 +2,7 @@
 import 'react-native-gesture-handler';
 import React from 'react';
 import { View, Text, Image } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ClerkProvider, SignedIn, SignedOut, useUser } from '@clerk/clerk-expo';
@@ -15,6 +15,7 @@ import Register from './src/screens/Register';
 import Profile from './src/screens/Profile';
 import VerificationScreen from './src/screens/VerificationScreen';
 import Settings from './src/screens/Settings';
+import TaskForm from './src/screens/TaskForm';
 import { VITE_CLERK_PUBLISHABLE_KEY } from '@env';
 import { TaskProvider } from './src/context/TaskContext';
 import { ThemeProvider } from './src/context/ThemeContext'; // Importă ThemeProvider
@@ -62,35 +63,46 @@ const TaskStack = () => (
       },
     }}
   >
-    <Stack.Screen 
-      name="TaskList" 
+    <Stack.Screen
+      name="TaskList"
       component={Task}
       options={{
         title: 'My Tasks'
       }}
     />
-    <Stack.Screen 
-      name="TaskDetails" 
+    <Stack.Screen
+      name="TaskDetails"
       component={TaskDetails}
       options={{
         title: 'Task Details'
       }}
     />
+    <Tab.Screen 
+        name="TaskForm" 
+        component={TaskForm}
+        // options={{
+        //   title: 'New Task',
+        //   headerStyle: {
+        //     backgroundColor: isDarkMode ? '#1f2937' : '#fff',
+        //   },
+        //   headerTintColor: isDarkMode ? '#fff' : '#000',
+        // }}
+      />
   </Stack.Navigator>
 );
 
 // Profile Stack Navigator
 const ProfileStackNavigator = () => (
   <ProfileStack.Navigator>
-    <ProfileStack.Screen 
-      name="ProfileMain" 
+    <ProfileStack.Screen
+      name="ProfileMain"
       component={Profile}
       options={{
         headerShown: false
       }}
     />
-    <ProfileStack.Screen 
-      name="Settings" 
+    <ProfileStack.Screen
+      name="Settings"
       component={Settings}
       options={{
         headerTitle: 'Settings',
@@ -118,8 +130,8 @@ const TabNavigator = () => (
       headerShown: false,
     }}
   >
-    <Tab.Screen 
-      name="Tasks" 
+    <Tab.Screen
+      name="Tasks"
       component={TaskStack}
       options={{
         tabBarLabel: ({ color }) => (
@@ -132,8 +144,8 @@ const TabNavigator = () => (
         ),
       }}
     />
-    <Tab.Screen 
-      name="Profile" 
+    <Tab.Screen
+      name="Profile"
       component={ProfileStackNavigator}
       options={{
         tabBarLabel: ({ color }) => (
@@ -146,6 +158,7 @@ const TabNavigator = () => (
         ),
       }}
     />
+    
   </Tab.Navigator>
 );
 
@@ -176,6 +189,7 @@ export default function App() {
                 <Stack.Screen name="Login" component={Login} />
                 <Stack.Screen name="Register" component={Register} />
                 <Stack.Screen name="VerifyCode" component={VerificationScreen} />
+                
               </Stack.Navigator>
             </SignedOut>
           </NavigationContainer>

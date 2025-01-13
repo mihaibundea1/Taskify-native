@@ -66,16 +66,23 @@ export default function Task() {
     setSearchResults([]);
     setSelectedDate(task.date);
     navigation.navigate('TaskDetails', { date: task.date });
+    
   }, [navigation, setSelectedDate]);
 
   // Memoized add task handler
+  // const handleAddTask = useCallback((date) => {
+  //   const taskDate = date || new Date().toISOString().split('T')[0];
+  //   if (taskDate !== selectedDate) {
+  //     setSelectedDate(taskDate);
+  //   }
+  //   navigation.navigate('TaskDetails', { date: taskDate });
+  // }, [navigation, setSelectedDate, selectedDate]);
   const handleAddTask = useCallback((date) => {
+    console.log('handleAddTask invoked with date:', date);
     const taskDate = date || new Date().toISOString().split('T')[0];
-    if (taskDate !== selectedDate) {
-      setSelectedDate(taskDate);
-    }
-    navigation.navigate('TaskDetails', { date: taskDate });
-  }, [navigation, setSelectedDate, selectedDate]);
+    setSelectedDate(taskDate);
+    navigation.navigate('TaskForm', { date: taskDate });
+  }, [navigation, setSelectedDate]);
 
   // Memoized day press handler
   const handleDayPress = useCallback((day) => {
@@ -156,7 +163,11 @@ export default function Task() {
       )}
 
       <View className="absolute bottom-6 right-4">
-        <FloatingButton onPress={() => handleAddTask(selectedDate)} />
+        <FloatingButton onPress={() => {handleAddTask(selectedDate),
+        console.log('handleAddTask invoked with date:', selectedDate);
+        }
+          
+        } />
       </View>
     </View>
   );

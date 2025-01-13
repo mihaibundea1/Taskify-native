@@ -31,11 +31,16 @@ export function TaskItem({ task, onToggle, onPress }) {
       
       <View className="flex-1">
         <Text className={`text-base font-medium ${task.completed ? 'line-through' : ''} ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
-          {task.text}
+          {task.title} {/* Afișează titlul task-ului */}
         </Text>
         {task.description && (
           <Text className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} numberOfLines={1}>
-            {task.description}
+            {task.description} {/* Afișează descrierea task-ului */}
+          </Text>
+        )}
+        {task.time && (
+          <Text className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            {task.time} {/* Afișează ora task-ului */}
           </Text>
         )}
       </View>

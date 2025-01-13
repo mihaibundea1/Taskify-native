@@ -51,13 +51,13 @@ export function TaskProvider({ children }) {
     // Real-time task subscription
     useEffect(() => {
         let unsubscribe;
-        
+
         const setupTaskListener = async () => {
             if (userId) {
                 try {
                     setLoading(true);
                     unsubscribe = taskService.subscribeToTasks(
-                        userId, 
+                        userId,
                         (fetchedTasks) => {
                             // Organize tasks by date
                             const tasksByDate = fetchedTasks.reduce((acc, task) => {
@@ -105,7 +105,7 @@ export function TaskProvider({ children }) {
         if (userId) {
             try {
                 const userTasks = await taskService.getTasks(userId);
-                
+
                 // Organize tasks by date
                 const tasksByDate = userTasks.reduce((acc, task) => {
                     const date = task.date || new Date().toISOString().split('T')[0];
@@ -122,7 +122,7 @@ export function TaskProvider({ children }) {
                 console.error('Error refreshing tasks:', error);
                 setSyncError(error);
                 Alert.alert('Refresh Error', 'Failed to refresh tasks');
-                
+
                 // Fallback to local tasks if network fails
                 loadLocalTasks();
             }
@@ -133,16 +133,18 @@ export function TaskProvider({ children }) {
     };
 
     // Add a new task
-    const addTask = async (date, taskText) => {
+    // Add a new task
+    const addTask = async (date, taskData) => {
         if (!userId) {
             // If no user, just save locally
             const newTask = {
                 id: Date.now().toString(),
-                text: taskText,
+                title: taskData.title,
+                description: taskData.description || '',
+                date: taskData.date,
+                time: taskData.time,
                 completed: false,
-                createdAt: new Date(),
-                description: '',
-                dueTime: null
+                createdAt: new Date()
             };
 
             const updatedTasks = {
@@ -156,29 +158,31 @@ export function TaskProvider({ children }) {
         }
 
         try {
-            const taskData = {
-                text: taskText,
-                date: date,
+            const taskPayload = {
+                title: taskData.title,
+                description: taskData.description || '',
+                date: taskData.date,
+                time: taskData.time,
                 completed: false,
-                description: ''
+                userId: userId
             };
 
             // Optimistic update
             const newTaskTemp = {
                 id: `temp-${Date.now()}`,
-                ...taskData
+                ...taskPayload
             };
-            
+
             const updatedTasks = {
                 ...tasks,
                 [date]: [...(tasks[date] || []), newTaskTemp]
             };
-            
+
             setTasks(updatedTasks);
             saveLocalTasks(updatedTasks);
 
             // Add task via service
-            await taskService.addTask(userId, taskData);
+            await taskService.addTask(userId, taskPayload);
         } catch (error) {
             console.error('Error adding task:', error);
             Alert.alert('Add Task Error', 'Failed to add task');
@@ -191,8 +195,8 @@ export function TaskProvider({ children }) {
             // If no user, just update locally
             const updatedTasks = {
                 ...tasks,
-                [date]: tasks[date].map(task => 
-                    task.id === taskId 
+                [date]: tasks[date].map(task =>
+                    task.id === taskId
                         ? { ...task, completed: !task.completed }
                         : task
                 )
@@ -206,12 +210,12 @@ export function TaskProvider({ children }) {
         try {
             // Find the current task
             const taskToToggle = tasks[date]?.find(task => task.id === taskId);
-            
+
             // Optimistic update
             const updatedTasks = {
                 ...tasks,
-                [date]: tasks[date].map(task => 
-                    task.id === taskId 
+                [date]: tasks[date].map(task =>
+                    task.id === taskId
                         ? { ...task, completed: !task.completed }
                         : task
                 )
@@ -234,8 +238,8 @@ export function TaskProvider({ children }) {
             // If no user, just update locally
             const updatedTasks = {
                 ...tasks,
-                [date]: tasks[date].map(task => 
-                    task.id === taskId 
+                [date]: tasks[date].map(task =>
+                    task.id === taskId
                         ? { ...task, description }
                         : task
                 )
@@ -250,8 +254,8 @@ export function TaskProvider({ children }) {
             // Optimistic update
             const updatedTasks = {
                 ...tasks,
-                [date]: tasks[date].map(task => 
-                    task.id === taskId 
+                [date]: tasks[date].map(task =>
+                    task.id === taskId
                         ? { ...task, description }
                         : task
                 )

@@ -8,10 +8,13 @@ import { AddTaskInput } from '../components/TaskDetailsComponents/AddTaskInput';
 import { TaskDetailsModal } from '../components/TaskDetailsComponents/TaskDetailsModal';
 import NetInfo from "@react-native-community/netinfo";
 import { useTheme } from '../context/ThemeContext'; // Import theme context
+import { useNavigation } from '@react-navigation/native';
+import FloatingButton from '../components/TaskComponents/FloatingButton';
+
 
 export default function TaskDetails({ route }) {
   const { date } = route.params;
-  const { 
+  const {
     addTask: contextAddTask,
     toggleTask: contextToggleTask,
     updateTaskDescription: contextUpdateDescription,
@@ -20,14 +23,17 @@ export default function TaskDetails({ route }) {
     userId,
     isOnline,
     syncError,
+    selectedDate,
+    setSelectedDate,
   } = useTask();
-  
+
   const { isDarkMode } = useTheme(); // Retrieve active theme
   const [newTaskText, setNewTaskText] = useState('');
   const [selectedTask, setSelectedTask] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [networkStatus, setNetworkStatus] = useState(true);
+  const navigation = useNavigation();
 
   // Memoize the task list based on the date
   const taskList = useMemo(() => getTasksForDate(date), [date, getTasksForDate]);
@@ -36,7 +42,7 @@ export default function TaskDetails({ route }) {
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       setNetworkStatus(state.isConnected);
-      
+
       if (!state.isConnected) {
         ToastAndroid.show('No internet connection. Changes will sync later.', ToastAndroid.SHORT);
       }
@@ -47,32 +53,11 @@ export default function TaskDetails({ route }) {
     };
   }, []);
 
-  // Handle keyboard visibility
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      () => {
-        setKeyboardVisible(true);
-      }
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        setKeyboardVisible(false);
-      }
-    );
-
-    return () => {
-      keyboardDidHideListener.remove();
-      keyboardDidShowListener.remove();
-    };
-  }, []); 
-
   // Handle sync errors
   useEffect(() => {
     if (syncError) {
       Alert.alert(
-        'Sync Error', 
+        'Sync Error',
         'There was a problem syncing your tasks. Please check your connection and try again.',
         [{ text: 'OK' }]
       );
@@ -80,22 +65,29 @@ export default function TaskDetails({ route }) {
   }, [syncError]);
 
   // Add task handler
-  const handleAddTask = useCallback(() => {
-    if (newTaskText.trim()) {
-      if (!userId) {
-        Alert.alert('Login Required', 'Please log in to save tasks across devices.', [{ text: 'OK' }]);
-        return;
-      }
+  // const handleAddTask = useCallback(() => {
+  //   if (newTaskText.trim()) {
+  //     if (!userId) {
+  //       Alert.alert('Login Required', 'Please log in to save tasks across devices.', [{ text: 'OK' }]);
+  //       return;
+  //     }
 
-      if (!networkStatus) {
-        ToastAndroid.show('No internet. Task will sync when connection is restored.', ToastAndroid.SHORT);
-      }
+  //     if (!networkStatus) {
+  //       ToastAndroid.show('No internet. Task will sync when connection is restored.', ToastAndroid.SHORT);
+  //     }
 
-      contextAddTask(date, newTaskText);
-      setNewTaskText('');
-      Keyboard.dismiss();
-    }
-  }, [newTaskText, networkStatus, userId, contextAddTask, date]);
+  //     contextAddTask(date, newTaskText);
+  //     setNewTaskText('');
+  //     Keyboard.dismiss();
+  //   }
+  // }, [newTaskText, networkStatus, userId, contextAddTask, date]);
+
+  const handleAddTask = useCallback((date) => {
+    console.log('handleAddTask invoked with date:', date);
+    const taskDate = date || new Date().toISOString().split('T')[0];
+    setSelectedDate(taskDate);
+    navigation.navigate('TaskForm', { date: taskDate });
+  }, [navigation, setSelectedDate]);
 
   // Toggle task completion
   const handleToggle = useCallback((taskId) => {
@@ -140,8 +132,10 @@ export default function TaskDetails({ route }) {
   const renderNetworkWarning = () => {
     if (!networkStatus) {
       return (
-        <View className="bg-yellow-100 p-2 items-center">
-          <Text className={`text-${isDarkMode ? 'yellow-300' : 'yellow-800'}`}>No internet connection. Changes will sync later.</Text>
+        <View style={{ backgroundColor: isDarkMode ? '#FBBF24' : '#FFFBF0', padding: 8, alignItems: 'center' }}>
+          <Text style={{ color: isDarkMode ? '#F59E0B' : '#9B5C01' }}>
+            No internet connection. Changes will sync later.
+          </Text>
         </View>
       );
     }
@@ -154,7 +148,7 @@ export default function TaskDetails({ route }) {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 70}
       style={{ flex: 1 }}
     >
-      <View className={`flex-1 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
+      <View style={{ flex: 1, backgroundColor: isDarkMode ? '#2D2D2D' : '#FAFAFA' }}>
         {renderNetworkWarning()}
 
         <TaskHeader
@@ -164,7 +158,7 @@ export default function TaskDetails({ route }) {
         />
 
         <FlatList
-          className="px-4"
+          contentContainerStyle={{ paddingBottom: 120 }}
           data={taskList}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
@@ -178,16 +172,15 @@ export default function TaskDetails({ route }) {
             />
           )}
           ListEmptyComponent={<EmptyTaskList />}
-          contentContainerStyle={{ paddingBottom: 120 }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         />
 
-        <AddTaskInput
+        {/* <AddTaskInput
           value={newTaskText}
           onChangeText={setNewTaskText}
           onSubmit={handleAddTask}
-        />
+        /> */}
 
         <TaskDetailsModal
           visible={isModalVisible}
@@ -200,6 +193,14 @@ export default function TaskDetails({ route }) {
           onDelete={handleDelete}
           onDescriptionChange={handleDescriptionChange}
         />
+      </View>
+      <View className="absolute bottom-6 right-4">
+        <FloatingButton onPress={() => {
+          handleAddTask(selectedDate),
+          console.log('handleAddTask invoked with date:', selectedDate);
+        }
+
+        } />
       </View>
     </KeyboardAvoidingView>
   );

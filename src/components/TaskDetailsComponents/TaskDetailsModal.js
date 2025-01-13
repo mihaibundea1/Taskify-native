@@ -81,14 +81,14 @@ export function TaskDetailsModal({
                             <View className="flex-1">
                                 <Text className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Task Details</Text>
                                 <Text className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    Created {new Date(task.createdAt).toLocaleDateString()}
+                                    Created {new Date(task.date).toLocaleDateString()} {/* Folosește data corectă */}
                                 </Text>
                             </View>
                             <TouchableOpacity 
                                 onPress={handleClose}
                                 className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
                             >
-                                <X size={20} color={isDarkMode ? '#F3F4F6' : '#6B7280'} />
+                                <X size={20} color={isDarkMode ? '#555555' : '#6B7280'} />
                             </TouchableOpacity>
                         </View>
 
@@ -108,7 +108,7 @@ export function TaskDetailsModal({
                                     {isCompleted && <Check size={18} color="white" />}
                                 </TouchableOpacity>
                                 <Text className={`text-xl ${isCompleted ? 'text-gray-400 line-through' : isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-                                    {task.text}
+                                    {task.title} {/* Folosește titlul task-ului */}
                                 </Text>
                             </View>
 

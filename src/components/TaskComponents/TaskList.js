@@ -102,7 +102,7 @@ export default function TaskList({ selectedDate }) {
                             className={`${task.completed ? 'text-gray-400 line-through' : isDarkMode ? 'text-gray-100' : 'text-gray-800'}`} 
                             style={{ fontSize: wp(4) }}
                         >
-                            {task.text}
+                            {task.title}  {/* Afișează titlul task-ului */}
                         </Text>
                         {task.description && (
                             <Text 
@@ -110,9 +110,15 @@ export default function TaskList({ selectedDate }) {
                                 style={{ fontSize: wp(3.5), marginTop: hp(0.5) }} 
                                 numberOfLines={1}
                             >
-                                {task.description}
+                                {task.description} {/* Afișează descrierea task-ului */}
                             </Text>
                         )}
+                        <Text 
+                            className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} 
+                            style={{ fontSize: wp(3), marginTop: hp(0.5) }}
+                        >
+                            {task.time} {/* Afișează ora task-ului */}
+                        </Text>
                     </View>
 
                     <ChevronRight size={wp(5)} color={isDarkMode ? '#cbd5e1' : '#9ca3af'} />

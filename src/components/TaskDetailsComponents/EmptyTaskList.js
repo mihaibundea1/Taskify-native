@@ -8,15 +8,29 @@ export function EmptyTaskList() {
 
   return (
     <View 
-      className={`items-center justify-center py-16 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`} // Fundalul în funcție de temă
+      style={{
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        paddingVertical: 16, 
+        backgroundColor: isDarkMode ? '#2d2d2d' : '#fafafa' // background color depending on theme
+      }}
     >
       <View 
-        className={`p-4 rounded-full mb-4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`} // Fundal pentru iconiță în funcție de temă
+        style={{
+          padding: 16,
+          borderRadius: 50,
+          marginBottom: 16,
+          backgroundColor: isDarkMode ? '#3a3a3a' : '#f0f0f0' // background for icon
+        }}
       >
-        <ClipboardList size={32} color={isDarkMode ? '#6366f1' : '#6366f1'} /> {/* Iconița rămâne constantă */}
+        <ClipboardList size={32} color={isDarkMode ? '#6366f1' : '#6366f1'} /> {/* Icon remains constant */}
       </View>
-      <Text className={`text-lg font-medium ${isDarkMode ? 'text-white' : 'text-gray-600'}`}>No tasks yet</Text> {/* Textul principal */}
-      <Text className={`mt-1 text-base ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>Add your first task using the input below</Text> {/* Textul secundar */}
+      <Text style={{ fontSize: 18, fontWeight: '500', color: isDarkMode ? '#ffffff' : '#4b4b4b' }}>
+        No tasks yet
+      </Text>
+      <Text style={{ marginTop: 4, fontSize: 14, color: '#a0a0a0' }}>
+        Add your first task using the input below
+      </Text>
     </View>
   );
 }
