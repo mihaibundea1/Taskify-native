@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert,
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { useTask } from '../context/TaskContext';
+import { aiService } from '../services/aiService'; // Import AI service
 
 const TaskForm = ({ route }) => {
   const navigation = useNavigation();
@@ -19,6 +20,7 @@ const TaskForm = ({ route }) => {
   const [isRecurring, setIsRecurring] = useState(false);
   const [numberOfWeeks, setNumberOfWeeks] = useState(1);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [subTasks, setSubTasks] = useState([]); // Store AI-generated tasks
 
   useEffect(() => {
     setTitle('');
@@ -86,25 +88,48 @@ const TaskForm = ({ route }) => {
   };
 
   const handleAiAssist = async () => {
+    if (!title.trim()) {
+      Alert.alert('Error', 'Please enter a title');
+      return;
+    }
+  
     setIsAiLoading(true);
-    // Simulate AI generation process
-    setTimeout(() => setIsAiLoading(false), 2000);
+    try {
+      const suggestions = await aiService.decomposeTask(title, description || '', selectedDate);
+      setSubTasks(suggestions);
+  
+      // Parcurgem răspunsul JSON și creăm task-uri din subtask-urile generate
+      const tasksToAdd = suggestions.map(suggestion => ({
+        title: suggestion.title,
+        description: suggestion.description || '',
+        date: selectedDate,
+        time: suggestion.suggestedTime,
+      }));
+  
+      // Adăugăm fiecare task în context sau în baza de date
+      for (const task of tasksToAdd) {
+        await addTask(task.date, task); // Apelăm funcția addTask pentru fiecare task generat
+      }
+      
+      // După ce task-urile sunt adăugate, navigăm înapoi
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error generating tasks:', error);
+      Alert.alert('Error', 'Unable to generate tasks. Please try again.');
+    } finally {
+      setIsAiLoading(false);
+    }
   };
 
   return (
-    <View
-      style={[styles.screen, { backgroundColor: isDarkMode ? '#1f2937' : '#fff' }]}
-    >
+    <View style={[styles.screen, { backgroundColor: isDarkMode ? '#1f2937' : '#fff' }]}>
       <ScrollView style={styles.form}>
         <View style={styles.inputGroup}>
           <Text style={[styles.label, { color: isDarkMode ? '#fff' : '#000' }]}>Title</Text>
           <TextInput
             value={title}
             onChangeText={setTitle}
-            style={[
-              styles.input,
-              { backgroundColor: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#fff' : '#000' },
-            ]}
+            style={[styles.input, { backgroundColor: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#fff' : '#000' }]}
             placeholder="Add a title..."
             placeholderTextColor={isDarkMode ? '#9ca3af' : '#6b7280'}
           />
@@ -115,73 +140,11 @@ const TaskForm = ({ route }) => {
           <TextInput
             value={time}
             onChangeText={setTime}
-            style={[
-              styles.input,
-              { backgroundColor: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#fff' : '#000' },
-            ]}
+            style={[styles.input, { backgroundColor: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#fff' : '#000' }]}
             placeholder="Add time..."
             placeholderTextColor={isDarkMode ? '#9ca3af' : '#6b7280'}
           />
         </View>
-
-        {!route?.params?.editingTask && (
-          <View style={styles.repeatOptions}>
-            <View style={styles.checkboxRow}>
-              <Text style={[styles.checkboxLabel, { color: isDarkMode ? '#fff' : '#000' }]}>
-                Repeat this week
-              </Text>
-              <Switch
-                value={isWeeklyRepeat}
-                onValueChange={(val) => {
-                  setIsWeeklyRepeat(val);
-                  if (val) setIsRecurring(false);
-                }}
-              />
-            </View>
-
-            {isWeeklyRepeat && (
-              <View style={styles.checkboxRow}>
-                <Text style={[styles.checkboxLabel, { color: isDarkMode ? '#fff' : '#000' }]}>
-                  Exclude weekends
-                </Text>
-                <Switch
-                  value={excludeWeekends}
-                  onValueChange={setExcludeWeekends}
-                />
-              </View>
-            )}
-
-            <View style={styles.checkboxRow}>
-              <Text style={[styles.checkboxLabel, { color: isDarkMode ? '#fff' : '#000' }]}>
-                Recurring every week
-              </Text>
-              <Switch
-                value={isRecurring}
-                onValueChange={(val) => {
-                  setIsRecurring(val);
-                  if (val) setIsWeeklyRepeat(false);
-                }}
-              />
-            </View>
-
-            {isRecurring && (
-              <View style={styles.inputGroup}>
-                <Text style={[styles.label, { color: isDarkMode ? '#fff' : '#000' }]}>Number of weeks</Text>
-                <TextInput
-                  value={String(numberOfWeeks)}
-                  onChangeText={(text) => setNumberOfWeeks(Number(text))}
-                  keyboardType="numeric"
-                  style={[
-                    styles.input,
-                    { backgroundColor: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#fff' : '#000' },
-                  ]}
-                  placeholder="Enter number of weeks"
-                  placeholderTextColor={isDarkMode ? '#9ca3af' : '#6b7280'}
-                />
-              </View>
-            )}
-          </View>
-        )}
 
         <View style={styles.inputGroup}>
           <Text style={[styles.label, { color: isDarkMode ? '#fff' : '#000' }]}>Description (optional)</Text>
@@ -189,31 +152,64 @@ const TaskForm = ({ route }) => {
             value={description}
             onChangeText={setDescription}
             multiline
-            style={[
-              styles.input,
-              styles.textarea,
-              { backgroundColor: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#fff' : '#000' },
-            ]}
+            style={[styles.input, styles.textarea, { backgroundColor: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#fff' : '#000' }]}
             placeholder="Add a description..."
             placeholderTextColor={isDarkMode ? '#9ca3af' : '#6b7280'}
           />
         </View>
 
-        <View style={styles.buttons}>
-          <TouchableOpacity
-            onPress={handleAiAssist}
-            disabled={isAiLoading}
-            style={[styles.aiButton, { backgroundColor: isAiLoading ? '#7f56d9' : '#007BFF' }]}
-          >
-            <Text style={styles.submitButtonText}>
-              {isAiLoading ? 'Generating...' : 'AI Assistant'}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
-            <Text style={styles.submitButtonText}>Add Task</Text>
-          </TouchableOpacity>
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: isDarkMode ? '#fff' : '#000' }]}>Repeat Weekly</Text>
+          <Switch
+            value={isWeeklyRepeat}
+            onValueChange={setIsWeeklyRepeat}
+          />
         </View>
+
+        {isWeeklyRepeat && (
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: isDarkMode ? '#fff' : '#000' }]}>Exclude Weekends</Text>
+            <Switch
+              value={excludeWeekends}
+              onValueChange={setExcludeWeekends}
+            />
+          </View>
+        )}
+
+        <View style={styles.inputGroup}>
+          <Text style={[styles.label, { color: isDarkMode ? '#fff' : '#000' }]}>Recurring</Text>
+          <Switch
+            value={isRecurring}
+            onValueChange={setIsRecurring}
+          />
+        </View>
+
+        {isRecurring && (
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: isDarkMode ? '#fff' : '#000' }]}>Number of Weeks</Text>
+            <TextInput
+              value={String(numberOfWeeks)}
+              onChangeText={(value) => setNumberOfWeeks(Number(value))}
+              keyboardType="numeric"
+              style={[styles.input, { backgroundColor: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#fff' : '#000' }]}
+              placeholder="1"
+            />
+          </View>
+        )}
+
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: isAiLoading ? '#9ca3af' : '#8b5cf6' }]}
+          onPress={handleAiAssist}
+          disabled={isAiLoading}
+        >
+          <Text style={styles.buttonText}>
+            {isAiLoading ? 'Generating...' : 'AI Assistant'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <Text style={styles.buttonText}>Add Task</Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -222,59 +218,39 @@ const TaskForm = ({ route }) => {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    paddingTop: 40,
+    padding: 16,
   },
   form: {
-    margin: 20,
+    flex: 1,
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   label: {
     fontSize: 16,
+    fontWeight: '500',
     marginBottom: 8,
   },
   input: {
-    padding: 12,
-    borderRadius: 6,
+    padding: 14,
+    borderRadius: 12,
     borderWidth: 1,
+    borderColor: '#ccc',
     fontSize: 16,
   },
   textarea: {
-    height: 100,
-    textAlignVertical: 'top',
+    minHeight: 100,
   },
-  repeatOptions: {
+  button: {
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
     marginVertical: 10,
   },
-  checkboxRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  checkboxLabel: {
-    fontSize: 14,
-  },
-  buttons: {
-    marginTop: 20,
-  },
-  aiButton: {
-    padding: 14,
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  submitButton: {
-    padding: 14,
-    borderRadius: 6,
-    backgroundColor: '#007BFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: 16,
+  buttonText: {
+    color: '#222222',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
 

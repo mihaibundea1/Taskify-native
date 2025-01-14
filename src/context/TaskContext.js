@@ -195,6 +195,7 @@ export function TaskProvider({ children }) {
             saveLocalTasks(updatedTasks);
 
             // Add task via service
+            console.log("task adaugat", taskPayload)
             await taskService.addTask(userId, taskPayload);
         } catch (error) {
             console.error('Error adding task:', error);
