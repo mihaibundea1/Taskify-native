@@ -23,7 +23,7 @@ export function EmptyTaskList() {
           backgroundColor: isDarkMode ? '#3a3a3a' : '#f0f0f0' // background for icon
         }}
       >
-        <ClipboardList size={32} color={isDarkMode ? '#007BFF' : '#007BFF'} /> {/* Icon remains constant */}
+        <ClipboardList size={32} color={isDarkMode ? '#007BFF' : '#007BFF'} /> Icon remains constant
       </View>
       <Text style={{ fontSize: 18, fontWeight: '500', color: isDarkMode ? '#ffffff' : '#4b4b4b' }}>
         No tasks yet

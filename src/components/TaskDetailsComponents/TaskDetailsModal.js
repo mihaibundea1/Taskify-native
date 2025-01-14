@@ -9,10 +9,9 @@ import {
     Keyboard,
     TouchableWithoutFeedback
 } from 'react-native';
-import { Trash2, Check, X, Calendar, AlignLeft, Clock } from 'lucide-react-native';
-import { useTheme } from '../../context/ThemeContext'; // Importă contextul de temă
+import { Trash2, Check, X, Clock, AlignLeft } from 'lucide-react-native';
+import { useTheme } from '../../context/ThemeContext';
 import DateTimePicker from '@react-native-community/datetimepicker';
-
 
 export function TaskDetailsModal({
     visible,
@@ -23,22 +22,35 @@ export function TaskDetailsModal({
     onDescriptionChange,
     onUpdateTask
 }) {
-    // Local state for managing description changes
+    const handleUpdate = () => {
+        if (onUpdateTask && task) {
+            onUpdateTask(task.id, {
+                ...task,
+                description: localDescription,
+                title: localTitle,
+                time: localTime,
+                completed: isCompleted
+            });
+        }
+    };
+
     const [localDescription, setLocalDescription] = useState('');
     const [localTime, setLocalTime] = useState('');
     const [localTitle, setLocalTitle] = useState('');
     const [isCompleted, setIsCompleted] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
 
-    // Update local state when task changes
+    const { isDarkMode } = useTheme();
+
     useEffect(() => {
         if (task) {
             setLocalDescription(task.description || '');
+            setLocalTime(task.time || '');
+            setLocalTitle(task.title || '');
             setIsCompleted(task.completed || false);
         }
     }, [task]);
 
-    // Handle description changes with debounce
     useEffect(() => {
         if (task && localDescription !== task.description) {
             const timeoutId = setTimeout(() => {
@@ -58,47 +70,28 @@ export function TaskDetailsModal({
                 hour12: false
             });
             setLocalTime(timeString);
-
-            // Actualizează task-ul cu noua oră
-            if (onUpdateTask) {
-                onUpdateTask(task.id, {
-                    ...task,
-                    time: timeString
-                });
-            }
+            onUpdateTask(task.id, { ...task, time: timeString });
         }
     };
 
     const handleTitleChange = (newTitle) => {
         setLocalTitle(newTitle);
-        if (onUpdateTask) {
-            onUpdateTask(task.id, {
-                ...task,
-                title: newTitle
-            });
-        }
+        onUpdateTask(task.id, { ...task, title: newTitle });
     };
 
-    // Handle task toggle
     const handleToggle = () => {
-        if (task) {
-            setIsCompleted(!isCompleted);
-            onToggle(task.id);
-        }
+        setIsCompleted(!isCompleted);
+        onToggle(task.id);
     };
 
-    // Handle modal close
     const handleClose = () => {
         Keyboard.dismiss();
         onClose();
     };
 
-    // Dismiss keyboard when clicking outside TextInput
     const dismissKeyboard = () => {
         Keyboard.dismiss();
     };
-
-    const { isDarkMode } = useTheme(); // Folosește contextul de temă
 
     if (!task) return null;
 
@@ -112,24 +105,19 @@ export function TaskDetailsModal({
             <TouchableWithoutFeedback onPress={dismissKeyboard}>
                 <View className={`flex-1 ${isDarkMode ? 'bg-black/50' : 'bg-black/50'}`}>
                     <View className={`flex-1 mt-24 rounded-t-3xl ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                        {/* Header */}
                         <View className={`flex-row justify-between items-center p-6 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-100'}`}>
                             <View className="flex-1">
                                 <Text className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Task Details</Text>
                                 <Text className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    Created {new Date(task.date).toLocaleDateString()} {/* Folosește data corectă */}
+                                    Created {new Date(task.date).toLocaleDateString()}
                                 </Text>
                             </View>
-                            <TouchableOpacity
-                                onPress={handleClose}
-                                className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
-                            >
+                            <TouchableOpacity onPress={handleClose} className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center">
                                 <X size={20} color={isDarkMode ? '#555555' : '#6B7280'} />
                             </TouchableOpacity>
                         </View>
 
                         <ScrollView className="flex-1 px-6">
-                            {/* Titlu editabil */}
                             <View className={`flex-row items-center py-6 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-100'}`}>
                                 <TouchableOpacity
                                     onPress={handleToggle}
@@ -147,18 +135,13 @@ export function TaskDetailsModal({
                                 />
                             </View>
 
-                            {/* Time Picker Section */}
                             <View className={`py-6 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-100'}`}>
-                                <TouchableOpacity
-                                    onPress={() => setShowTimePicker(true)}
-                                    className="flex-row items-center"
-                                >
+                                <TouchableOpacity onPress={() => setShowTimePicker(true)} className="flex-row items-center">
                                     <Clock size={20} color={isDarkMode ? '#F3F4F6' : '#6B7280'} />
                                     <Text className={`ml-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
                                         Time: {localTime || 'Set time'}
                                     </Text>
                                 </TouchableOpacity>
-
                                 {showTimePicker && (
                                     <DateTimePicker
                                         value={localTime ? new Date(`2000-01-01T${localTime}`) : new Date()}
@@ -170,7 +153,6 @@ export function TaskDetailsModal({
                                 )}
                             </View>
 
-                            {/* Description Section */}
                             <View className="py-6 space-y-4">
                                 <View className="flex-row items-center">
                                     <AlignLeft size={20} color={isDarkMode ? '#F3F4F6' : '#6B7280'} />
@@ -189,16 +171,18 @@ export function TaskDetailsModal({
                                         textAlignVertical="top"
                                         returnKeyType="done"
                                         blurOnSubmit={true}
-                                        onBlur={() => {
-                                            if (task.description !== localDescription) {
-                                                onDescriptionChange(task.id, localDescription);
-                                            }
-                                        }}
                                     />
                                 </View>
                             </View>
 
-                            {/* Delete Button */}
+                            <TouchableOpacity
+                                onPress={handleUpdate}
+                                activeOpacity={0.7}
+                                className="bg-blue-500 p-4 rounded-xl flex-row items-center justify-center my-6"
+                            >
+                                <Text className="text-white font-medium">Update Task</Text>
+                            </TouchableOpacity>
+
                             <TouchableOpacity
                                 onPress={() => onDelete(task.id)}
                                 activeOpacity={0.7}

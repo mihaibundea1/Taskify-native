@@ -26,11 +26,25 @@ export function TaskProvider({ children }) {
     }, [user, isLoaded, isSignedIn]);
 
     // Load local tasks from AsyncStorage
+    const validateTaskStructure = (tasks) => {
+        if (!tasks || typeof tasks !== 'object') return {};
+        const validTasks = {};
+        Object.keys(tasks).forEach(date => {
+            if (Array.isArray(tasks[date])) {
+                validTasks[date] = tasks[date].filter(task =>
+                    task.title && task.date && task.time && task.userId
+                );
+            }
+        });
+        return validTasks;
+    };
+
     const loadLocalTasks = async () => {
         try {
             const storedTasks = await AsyncStorage.getItem('tasks');
             if (storedTasks) {
-                setTasks(JSON.parse(storedTasks));
+                const parsedTasks = JSON.parse(storedTasks);
+                setTasks(validateTaskStructure(parsedTasks)); // Validare structură
             }
         } catch (error) {
             console.error('Error loading local tasks:', error);
@@ -59,17 +73,16 @@ export function TaskProvider({ children }) {
                     unsubscribe = taskService.subscribeToTasks(
                         userId,
                         (fetchedTasks) => {
-                            // Organize tasks by date
                             const tasksByDate = fetchedTasks.reduce((acc, task) => {
-                                const date = task.date || new Date().toISOString().split('T')[0];
+                                const date = task.date || new Date().toISOString().split('T')[0]; // Asigurăm că există o dată
                                 if (!acc[date]) {
                                     acc[date] = [];
                                 }
-                                acc[date].push(task);
+                                acc[date].push(task); // Posibil ca task-urile să aibă structură greșită
                                 return acc;
                             }, {});
 
-                            setTasks(tasksByDate);
+                            setTasks(tasksByDate); // Posibil să seteze o structură incorectă
                             saveLocalTasks(tasksByDate);
                             setLoading(false);
                         },
@@ -202,12 +215,12 @@ export function TaskProvider({ children }) {
                     };
                 }
             });
-            
+
             setTasks(updatedTasks);
             saveLocalTasks(updatedTasks);
             return;
         }
-    
+
         try {
             // Optimistic update
             const updatedTasks = { ...tasks };
@@ -220,12 +233,12 @@ export function TaskProvider({ children }) {
                     };
                 }
             });
-            
+
             setTasks(updatedTasks);
             saveLocalTasks(updatedTasks);
-    
-            // Update via service
-            await taskService.updateTask(userId, taskId, updatedTaskData);
+
+            // Update via service - nu mai includem userId aici
+            await taskService.updateTask(taskId, updatedTaskData);
         } catch (error) {
             console.error('Error updating task:', error);
             Alert.alert('Update Task Error', 'Failed to update task');
@@ -372,32 +385,32 @@ export function TaskProvider({ children }) {
         if (!searchTerm || typeof searchTerm !== 'string') {
             return [];
         }
-    
+
         const searchTermTrimmed = searchTerm.trim();
         if (searchTermTrimmed === '') {
             return [];
         }
-    
+
         const searchResult = [];
         const searchTermLower = searchTermTrimmed.toLowerCase();
-    
+
         // Verifică dacă tasks există și este un obiect
         if (!tasks || typeof tasks !== 'object') {
             return [];
         }
-    
+
         Object.entries(tasks).forEach(([date, tasksForDate]) => {
             // Verifică dacă tasksForDate este un array
             if (!Array.isArray(tasksForDate)) {
                 return;
             }
-    
+
             tasksForDate.forEach(task => {
                 if (!task) return; // Skip dacă task este null sau undefined
-    
+
                 const taskTitle = task.title || '';
                 const taskDescription = task.description || '';
-    
+
                 if (
                     taskTitle.toLowerCase().includes(searchTermLower) ||
                     taskDescription.toLowerCase().includes(searchTermLower)
@@ -409,10 +422,10 @@ export function TaskProvider({ children }) {
                 }
             });
         });
-    
+
         return searchResult.sort((a, b) => new Date(b.date) - new Date(a.date));
     };
-    
+
 
     return (
         <TaskContext.Provider value={{
@@ -428,6 +441,7 @@ export function TaskProvider({ children }) {
             getTasksForDate,
             getMarkedDates,
             refreshTasks,
+            updateTask,  // Asigură-te că este inclusă aici
             userId,
             user,
             syncError

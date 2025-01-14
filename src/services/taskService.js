@@ -69,11 +69,16 @@ export const taskService = {
 
   // Update an existing task
   updateTask: async (taskId, taskUpdates) => {
-    const taskRef = doc(db, 'tasks', taskId);
-    await updateDoc(taskRef, {
-      ...taskUpdates,
-      updatedAt: new Date().toISOString()
-    });
+    try {
+      const taskRef = doc(db, 'tasks', taskId); // Folosim direct taskId
+      await updateDoc(taskRef, {
+        ...taskUpdates,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error updating task:', error);
+      throw error; // Re-throw pentru a putea gestiona eroarea în componente
+    }
   },
 
   // Delete a task

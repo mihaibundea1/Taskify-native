@@ -9,6 +9,7 @@ import NetInfo from "@react-native-community/netinfo";
 import { useTheme } from '../context/ThemeContext'; // Import theme context
 import { useNavigation } from '@react-navigation/native';
 import FloatingButton from '../components/TaskComponents/FloatingButton';
+import { WeatherWidget } from '../components/WeatherWidget';
 
 
 export default function TaskDetails({ route }) {
@@ -128,6 +129,21 @@ export default function TaskDetails({ route }) {
     ]);
   }, [userId, contextDeleteTask, date]);
 
+  const handleUpdateTask = useCallback((taskId, updatedData) => {
+    if (!userId) {
+      Alert.alert('Login Required', 'Please log in to save tasks across devices.', [{ text: 'OK' }]);
+      return;
+    }
+  
+    try {
+      // Actualizăm task-ul folosind contextul
+      updateTask(taskId, updatedData);
+    } catch (error) {
+      console.error('Error updating task:', error);
+      Alert.alert('Update Error', 'Failed to update task');
+    }
+  }, [userId, updateTask]);
+
   // Render network status warning
   const renderNetworkWarning = () => {
     if (!networkStatus) {
@@ -156,6 +172,9 @@ export default function TaskDetails({ route }) {
           totalTasks={taskList.length}
           completedTasks={taskList.filter((t) => t.completed).length}
         />
+        <View className="px-4 py-2">
+          <WeatherWidget date={date} />
+        </View>
 
         <FlatList
           contentContainerStyle={{ paddingBottom: 120 }}
@@ -192,7 +211,7 @@ export default function TaskDetails({ route }) {
           onToggle={handleToggle}
           onDelete={handleDelete}
           onDescriptionChange={handleDescriptionChange}
-          onUpdateTask={updateTask} // pasăm noua funcție
+          onUpdateTask={handleUpdateTask} // pasăm noua funcție
         />
       </View>
       <View className="absolute bottom-6 right-4">
