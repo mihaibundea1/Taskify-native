@@ -5,7 +5,7 @@ import { View, Text, Image } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ClerkProvider, SignedIn, SignedOut, useUser } from '@clerk/clerk-expo';
+import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-expo';
 import { ListTodo, User } from 'lucide-react-native';
 import * as SecureStore from 'expo-secure-store';
 import Task from './src/screens/Task';
@@ -18,7 +18,7 @@ import Settings from './src/screens/Settings';
 import TaskForm from './src/screens/TaskForm';
 import { VITE_CLERK_PUBLISHABLE_KEY } from '@env';
 import { TaskProvider } from './src/context/TaskContext';
-import { ThemeProvider, useTheme } from './src/context/ThemeContext'; // Importă ThemeProvider
+import { ThemeProvider, useTheme } from './src/context/ThemeContext'; // Import ThemeProvider
 import { styled } from 'nativewind';
 
 const StyledView = styled(View);
@@ -28,70 +28,64 @@ const StyledImage = styled(Image);
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 const ProfileStack = createStackNavigator();
-const { isDarkMode } = useTheme();
-
 
 import * as WebBrowser from 'expo-web-browser';
-
 WebBrowser.maybeCompleteAuthSession();
 
 const tokenCache = {
-  getToken(key) {
+  getToken: async (key) => {
     try {
-      return SecureStore.getItemAsync(key);
+      return await SecureStore.getItemAsync(key);
     } catch (err) {
+      console.warn("Error getting token:", err);
       return null;
     }
   },
-  saveToken(key, value) {
+  saveToken: async (key, value) => {
     try {
-      return SecureStore.setItemAsync(key, value);
+      return await SecureStore.setItemAsync(key, value);
     } catch (err) {
+      console.warn("Error saving token:", err);
       return null;
     }
   },
 };
 
 // Task Stack Navigator
-const TaskStack = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerStyle: {
-        backgroundColor: isDarkMode ? '#1f2937' : '#007BFF', // Schimbă culoarea în funcție de temă
-      },
-      headerTintColor: isDarkMode ? '#fff' : '#000', // Schimbă culoarea textului
-      headerTitleStyle: {
-        fontWeight: 'bold',
-      },
-    }}
-  >
-    <Stack.Screen
-      name="TaskList"
-      component={Task}
-      options={{
-        title: 'My Tasks',
-      }}
-    />
-    <Stack.Screen
-      name="TaskDetails"
-      component={TaskDetails}
-      options={{
-        title: 'Task Details',
-      }}
-    />
-    <Stack.Screen
-      name="TaskForm"
-      component={TaskForm}
-      options={{
-        title: 'New Task',
+const TaskStack = () => {
+  const { isDarkMode } = useTheme();
+  return (
+    <Stack.Navigator
+      screenOptions={{
         headerStyle: {
-          backgroundColor: isDarkMode ? '#1f2937' : '#fff', // Dinamic în funcție de temă
+          backgroundColor: isDarkMode ? '#1f2937' : '#007BFF',
         },
         headerTintColor: isDarkMode ? '#fff' : '#000',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
       }}
-    />
-  </Stack.Navigator>
-);
+    >
+      <Stack.Screen
+        name="TaskList"
+        component={Task}
+        options={{ title: 'My Tasks' }}
+      />
+      <Stack.Screen
+        name="TaskDetails"
+        component={TaskDetails}
+        options={{ title: 'Task Details' }}
+      />
+      <Stack.Screen
+        name="TaskForm"
+        component={TaskForm}
+        options={{
+          title: 'New Task',
+        }}
+      />
+    </Stack.Navigator>
+  );
+};
 
 // Profile Stack Navigator
 const ProfileStackNavigator = () => (
@@ -99,18 +93,14 @@ const ProfileStackNavigator = () => (
     <ProfileStack.Screen
       name="ProfileMain"
       component={Profile}
-      options={{
-        headerShown: false
-      }}
+      options={{ headerShown: false }}
     />
     <ProfileStack.Screen
       name="Settings"
       component={Settings}
       options={{
         headerTitle: 'Settings',
-        headerStyle: {
-          backgroundColor: '#fff',
-        },
+        headerStyle: { backgroundColor: '#fff' },
         headerTintColor: '#007BFF',
         headerShadowVisible: false,
       }}
@@ -121,78 +111,66 @@ const ProfileStackNavigator = () => (
 // Tab Navigator
 const TabNavigator = () => {
   const { isDarkMode } = useTheme();
-
-  <Tab.Navigator
-    screenOptions={{
-      tabBarStyle: {
-        backgroundColor: isDarkMode ? '#1f2937' : '#fff', // Fundal dinamic
-      },
-      tabBarActiveTintColor: isDarkMode ? '#4F46E5' : '#007BFF', // Culoare activă
-      tabBarInactiveTintColor: isDarkMode ? '#9CA3AF' : '#6B7280', // Culoare inactivă
-      headerShown: false, // Ascunde header-ul implicit
-    }}
-  >
-    <Tab.Screen
-      name="Tasks"
-      component={TaskStack}
-      options={{
-        tabBarLabel: ({ color }) => (
-          <StyledText className={`text-xs ${isDarkMode ? 'text-gray-200' : 'text-gray-500'}`}>
-            Tasks
-          </StyledText>
-        ),
-        tabBarIcon: ({ color, size }) => <ListTodo color={color} size={size} />,
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: {
+          backgroundColor: isDarkMode ? '#1f2937' : '#fff',
+        },
+        tabBarActiveTintColor: isDarkMode ? '#4F46E5' : '#007BFF',
+        tabBarInactiveTintColor: isDarkMode ? '#9CA3AF' : '#6B7280',
+        headerShown: false,
       }}
-    />
-    <Tab.Screen
-      name="Profile"
-      component={ProfileStackNavigator}
-      options={{
-        tabBarLabel: ({ color }) => (
-          <StyledText className={`text-xs ${isDarkMode ? 'text-gray-200' : 'text-gray-500'}`}>
-            Profile
-          </StyledText>
-        ),
-        tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
-      }}
-    />
-  </Tab.Navigator>
+    >
+      <Tab.Screen
+        name="Tasks"
+        component={TaskStack}
+        options={{
+          tabBarLabel: ({ color }) => (
+            <StyledText className={`text-xs ${isDarkMode ? 'text-gray-200' : 'text-gray-500'}`}>Tasks</StyledText>
+          ),
+          tabBarIcon: ({ color, size }) => <ListTodo color={color} size={size} />,
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileStackNavigator}
+        options={{
+          tabBarLabel: ({ color }) => (
+            <StyledText className={`text-xs ${isDarkMode ? 'text-gray-200' : 'text-gray-500'}`}>Profile</StyledText>
+          ),
+          tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
+        }}
+      />
+    </Tab.Navigator>
+  );
 };
-
 
 export default function App() {
   return (
-    <ClerkProvider
-      publishableKey={VITE_CLERK_PUBLISHABLE_KEY}
-      tokenCache={tokenCache}
-    >
-      <ThemeProvider>  {/* Împachetează aplicația cu ThemeProvider */}
-        <TaskProvider>
-          <NavigationContainer>
+    <NavigationContainer>
+      <ClerkProvider publishableKey={VITE_CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
+        <ThemeProvider>
+          <TaskProvider>
             <SignedIn>
               <TabNavigator />
             </SignedIn>
             <SignedOut>
               <Stack.Navigator
                 screenOptions={{
-                  headerStyle: {
-                    backgroundColor: '#4F46E5',
-                  },
+                  headerStyle: { backgroundColor: '#4F46E5' },
                   headerTintColor: '#fff',
-                  headerTitleStyle: {
-                    fontWeight: 'bold',
-                  },
+                  headerTitleStyle: { fontWeight: 'bold' },
                 }}
               >
                 <Stack.Screen name="Login" component={Login} />
                 <Stack.Screen name="Register" component={Register} />
                 <Stack.Screen name="VerifyCode" component={VerificationScreen} />
-
               </Stack.Navigator>
             </SignedOut>
-          </NavigationContainer>
-        </TaskProvider>
-      </ThemeProvider>
-    </ClerkProvider>
+          </TaskProvider>
+        </ThemeProvider>
+      </ClerkProvider>
+    </NavigationContainer>
   );
 }
