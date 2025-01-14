@@ -16,6 +16,7 @@ import Profile from './src/screens/Profile';
 import VerificationScreen from './src/screens/VerificationScreen';
 import Settings from './src/screens/Settings';
 import TaskForm from './src/screens/TaskForm';
+import Premium from './src/screens/Premium';  // Importă PremiumBenefits
 import { VITE_CLERK_PUBLISHABLE_KEY } from '@env';
 import { TaskProvider } from './src/context/TaskContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext'; // Import ThemeProvider
@@ -100,6 +101,16 @@ const ProfileStackNavigator = () => (
       component={Settings}
       options={{
         headerTitle: 'Settings',
+        headerStyle: { backgroundColor: '#fff' },
+        headerTintColor: '#007BFF',
+        headerShadowVisible: false,
+      }}
+    />
+    <ProfileStack.Screen
+      name="Premium"  // Adăugați ecranul PremiumBenefits în stack
+      component={Premium}
+      options={{
+        title: 'Premium Benefits',
         headerStyle: { backgroundColor: '#fff' },
         headerTintColor: '#007BFF',
         headerShadowVisible: false,

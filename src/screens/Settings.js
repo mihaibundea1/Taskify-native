@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { styled } from 'nativewind';
 import { useAuth } from '@clerk/clerk-expo';
-import { LogOut, Moon, Sun, ChevronRight } from 'lucide-react-native';
+import { LogOut, Moon, Sun, ChevronRight, Crown } from 'lucide-react-native';
 import { useTheme } from '../context/ThemeContext'; // Importă contextul de temă
 
 const StyledView = styled(View);
@@ -40,6 +40,10 @@ const Settings = ({ navigation }) => {
     }
   };
 
+  const navigateToPremium = () => {
+    navigation.navigate('Premium');
+  };
+
   return (
     <StyledView className={`flex-1 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'} p-4`}>
       <StyledText className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
@@ -62,6 +66,17 @@ const Settings = ({ navigation }) => {
         icon={<LogOut size={24} color="#ef4444" />}
         title="Sign Out"
         onPress={handleLogout}
+        isDarkMode={isDarkMode}
+      />
+
+      <StyledText className={`text-lg font-semibold mb-4 mt-6 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+        Premium Plans
+      </StyledText>
+
+      <SettingsOption
+        icon={<Crown size={24} color="#f59e0b" />}
+        title="Premium Plan"
+        onPress={navigateToPremium}
         isDarkMode={isDarkMode}
       />
     </StyledView>
