@@ -4,7 +4,8 @@
     "slug": "Taskify",
     "version": "1.0.0",
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "@stripe/stripe-react-native"
     ],
     "newArchEnabled": true
   }
