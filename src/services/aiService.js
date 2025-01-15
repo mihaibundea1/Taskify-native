@@ -20,10 +20,21 @@ export const aiService = {
 
       const result = await model.generateContent(prompt);
       const response = await result.response;
-      const text = await response.text();
-      console.log(text);
-
-      return JSON.parse(text);
+      let text = await response.text();
+      
+      // Curățăm textul de caractere potențial problematice
+      text = text.trim();
+      // Eliminăm caractere backtick sau alte delimitatoare comune
+      text = text.replace(/^`+|`+$/g, '');
+      // Eliminăm "json" sau alte etichete de la început
+      text = text.replace(/^(json|JSON)\s*/, '');
+      
+      try {
+        return JSON.parse(text);
+      } catch (parseError) {
+        console.error('Eroare la parsarea JSON:', text);
+        throw new Error('Răspunsul AI nu este în format JSON valid');
+      }
     } catch (error) {
       console.error('Eroare la generarea subtask-urilor:', error);
       throw error;
